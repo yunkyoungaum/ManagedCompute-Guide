@@ -272,11 +272,12 @@ body[data-lang="en"] .lang-ko{display:none}
     <a class="lvl2" href="#b5">B5. 쿼터 구조와 플랜 B</a>
     <a class="lvl1" href="#partC">Part C · How</a>
     <a class="lvl2" href="#c1">C1. 5단계 배포</a>
-    <a class="lvl2" href="#c2">C2. 코드 마이그레이션</a>
-    <a class="lvl2" href="#c3">C3. 네트워크 · 인증 · 권한</a>
-    <a class="lvl2" href="#c4">C4. 관측</a>
-    <a class="lvl2" href="#c5">C5. 스케일아웃 · 캐시</a>
-    <a class="lvl2" href="#c6">C6. 전환 체크리스트</a>
+    <a class="lvl2" href="#c2">C2. 커스텀 모델 올리기 (BYOM)</a>
+    <a class="lvl2" href="#c3">C3. 코드 마이그레이션</a>
+    <a class="lvl2" href="#c4">C4. 네트워크 · 인증 · 권한</a>
+    <a class="lvl2" href="#c5">C5. 관측</a>
+    <a class="lvl2" href="#c6">C6. 스케일아웃 · 캐시</a>
+    <a class="lvl2" href="#c7">C7. 전환 체크리스트</a>
     <a class="lvl1" href="#partD">Part D · Economics</a>
     <a class="lvl2" href="#d1">D1. 비용 공식</a>
     <a class="lvl2" href="#d2">D2. 시나리오 시뮬레이션</a>
@@ -298,16 +299,9 @@ body[data-lang="en"] .lang-ko{display:none}
     벤치마크 결과(Part A) → 개념(Part B) → 전환 실습(Part C) → 비용·의사결정(Part D) 순으로 구성했습니다.
   </p>
 
-  <div class="grid g4">
-    <div class="card stat"><div class="n">4</div><div class="l">선택만 하면 배포 완료<br>모델 · 템플릿 · 가속기 · 인스턴스</div></div>
-    <div class="card stat"><div class="n">10–15분</div><div class="l">카탈로그에서 엔드포인트까지<br>일반적인 프로비저닝 시간</div></div>
-    <div class="card stat"><div class="n">1</div><div class="l">통합 Foundry 엔드포인트<br>Standard · Provisioned · MC 공통</div></div>
-    <div class="card stat"><div class="n">0</div><div class="l">직접 운영할 클러스터<br>런타임 · 패치 · 라우터 이관</div></div>
-  </div>
-
   <div class="note">
     <b>이 문서를 읽는 순서</b>
-    의사결정자는 <b>A3 → B1 → B3 → D1</b>, 플랫폼 엔지니어는 <b>B4 → B5 → C2 → C6</b>, 성능 검증 담당은 <b>A1 → A2 → C4 → D3</b> 을 먼저 보시면 됩니다.
+    의사결정자는 <b>A3 → B1 → B3 → D1</b>, 플랫폼 엔지니어는 <b>B4 → B5 → C3 → C7</b>, 성능 검증 담당은 <b>A1 → A2 → C5 → D3</b> 을 먼저 보시면 됩니다.
     가격·쿼터·로드맵 수치는 <span class="tag ghost">2026-08 기준</span> 이며 실제 계약 전 Azure Pricing으로 재확인이 필요합니다.
   </div>
 
@@ -398,7 +392,7 @@ body[data-lang="en"] .lang-ko{display:none}
   <b>메트릭 출처</b>
   Managed Compute 구성의 값은 별도 계측 없이 Azure Monitor에서 그대로 조회할 수 있습니다
   (<code>NormalizedTimeToFirstToken</code>, <code>NormalizedTimeBetweenTokens</code>, <code>TokensPerSecond</code>,
-  <code>ContextTokensCacheMatchRate</code>) — <a href="#c4">C4 참조</a>.
+  <code>ContextTokensCacheMatchRate</code>) — <a href="#c5">C5 참조</a>.
 </div>
 
 <div class="ph">
@@ -565,7 +559,7 @@ body[data-lang="en"] .lang-ko{display:none}
   <tbody>
     <tr><td>NVIDIA A100</td><td><code>A100_80GB</code></td><td>80 GB</td><td>$3.95 / GPU-h</td></tr>
     <tr><td>NVIDIA H100</td><td><code>H100_80GB</code></td><td>80 GB</td><td>$7.91 / GPU-h</td></tr>
-    <tr><td>NVIDIA H200</td><td><code>H200_141GB</code></td><td>141 GB</td><td>포털·요청 폼에서 선택 가능</td></tr>
+    <tr><td>NVIDIA H200</td><td><code>H200_141GB</code></td><td>141 GB</td><td><span class="tag roadmap">Coming soon</span></td></tr>
     <tr><td>AMD MI300X</td><td><code>MI300_192GB</code></td><td><b>192 GB</b></td><td>$7.91 / GPU-h — H100과 동일 단가</td></tr>
   </tbody>
 </table>
@@ -670,7 +664,7 @@ body[data-lang="en"] .lang-ko{display:none}
 <div class="tip">
   <b>화면에서 확인할 것</b>
   Step 4 화면의 <b>Model ID</b>와 <b>Deployment template ID</b>는 그대로 복사해
-  <a href="#c2">C2의 관리 SDK 코드</a>의 <code>MODEL_ID</code> · <code>TEMPLATE_ID</code>에 넣으면 됩니다. 포털과 SDK가 동일한 값을 사용합니다.
+  <a href="#c3">C3의 관리 SDK 코드</a>의 <code>MODEL_ID</code> · <code>TEMPLATE_ID</code>에 넣으면 됩니다. 포털과 SDK가 동일한 값을 사용합니다.
 </div>
 
 <h4>배포 템플릿 안에 들어있는 것 (참고)</h4>
@@ -718,7 +712,131 @@ body[data-lang="en"] .lang-ko{display:none}
 </div>
 <p><b>읽는 법</b> — <code>environmentId</code>가 런타임 이미지 버전을 고정하고, 환경 변수가 컨텍스트 길이와 파서를 결정하며, <code>acceleratorMaps</code>가 <b>과금 단위</b>(인스턴스당 GPU 수)를 정의합니다. 5분 워밍업 프로브는 롤아웃 판정을 보호합니다.</p>
 
-<h3 id="c2">C2. 코드 마이그레이션 — 바꾸는 것은 두 줄</h3>
+<h3 id="c2">C2. 카탈로그에 없는 모델 올리기 — BYOM</h3>
+<p>파인튜닝 결과물, 사내 자체 모델, 카탈로그 미등재 Hugging Face 모델처럼 <b>카탈로그에 없는 가중치</b>를 올려야 하는 경우입니다. C1의 4-선택 흐름과는 별개의 경로이며, <b>제약 조건이 다르다는 점이 가장 중요합니다.</b></p>
+
+<div class="warn">
+  <b>먼저 알아야 할 4가지 제약</b>
+  <ul style="margin:6px 0 0">
+    <li><b>포털이 다릅니다.</b> 커스텀 모델의 Managed Compute 배포는 <b>Foundry (classic) 포털의 hub 기반 프로젝트</b> 또는 Azure ML 스튜디오에서만 가능합니다. 신규 Foundry 포털은 이 경로를 노출하지 않습니다.</li>
+    <li><b>Foundry 최적화 런타임이 자동 적용되지 않습니다.</b> 카탈로그 모델의 배포 템플릿(vLLM 버전·파서·동시성 고정)은 레지스트리에 <b>가중치와 함께 패키징</b>된 것입니다. 직접 등록한 모델에는 붙지 않으므로 <b>스코어링 스크립트 + 환경</b>을 직접 제공하거나 MLflow/Triton/BYOC 경로를 써야 합니다.</li>
+    <li><b>쿼터 종류가 다릅니다.</b> Managed Compute 가속기 쿼터가 아니라 <b>Azure ML VM 코어 쿼터</b>(VM 계열 × 리전)를 소비합니다. N-시리즈 GPU는 기본값이 0코어이므로 별도 요청이 필요하고, Azure ML이 <b>20%를 업그레이드용으로 추가 예약</b>합니다(10인스턴스 요청 → 12인스턴스분 쿼터 필요).</li>
+    <li><b>엔드포인트 형식이 다릅니다.</b> 통합 Foundry 엔드포인트가 아니라 Azure ML 관리형 온라인 엔드포인트 URL <code>https://&lt;endpoint&gt;.&lt;region&gt;.inference.ml.azure.com/score</code> 이 발급됩니다. C3의 <b>두 줄만 바꾸는 마이그레이션이 적용되지 않습니다.</b></li>
+  </ul>
+</div>
+
+<h4>4가지 경로 — 어느 것을 쓸 것인가</h4>
+<table>
+  <thead><tr><th style="width:16%">경로</th><th style="width:26%">해당 상황</th><th>필요한 것</th><th style="width:14%">스코어링 스크립트</th></tr></thead>
+  <tbody>
+    <tr><td><b>A</b> · HF 카탈로그</td><td>Hugging Face 컬렉션에 <b>이미 있는</b> 모델</td><td>모델 ID만 지정: <code>azureml://registries/HuggingFace/models/&lt;name&gt;/labels/latest</code></td><td><span class="tag ok">불필요</span></td></tr>
+    <tr><td><b>B</b> · HF 임포트</td><td>HF Hub에는 있으나 <b>카탈로그 미등재</b></td><td>카탈로그 검색 결과 없음 → <b>Import model notebook</b> 실행 → 워크스페이스에 등록</td><td><span class="tag ghost">모델 타입에 따름</span></td></tr>
+    <tr><td><b>C</b> · 자체 가중치</td><td>사내 모델, 자체 학습 가중치, 임의 포맷</td><td>모델 등록 후 배포. <code>mlflow_model</code>/<code>triton_model</code>은 무코드, <code>custom</code>은 <code>score.py</code>+환경 필요</td><td><span class="tag roadmap">타입별 상이</span></td></tr>
+    <tr><td><b>D</b> · 파인튜닝 결과</td><td>Foundry/AML 파인튜닝 잡의 출력</td><td>잡 출력에서 모델 등록 → 경로 C와 동일하게 배포</td><td><span class="tag ghost">모델 타입에 따름</span></td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <b>경로 선택 요령</b>
+  가능하면 <b>A → B → D → C</b> 순으로 검토하세요. 위쪽일수록 Microsoft가 관리하는 런타임을 그대로 쓰기 때문에 운영 부담이 작습니다.
+  경로 C는 사실상 <b>자체 서빙 스택을 Azure ML 위로 옮기는 것</b>이므로, 런타임·패치 책임이 다시 고객에게 돌아옵니다(B3 책임 분계선 참조).
+</div>
+
+<h4>경로 A — Hugging Face 컬렉션 모델 배포</h4>
+<p>포털 경로: <b>Foundry (classic) → Model Catalog → Collection = HuggingFace → 모델 선택 → Managed Compute</b>. SDK는 다음과 같습니다.</p>
+<pre><span class="kw">from</span> azure.ai.ml <span class="kw">import</span> MLClient
+<span class="kw">from</span> azure.ai.ml.entities <span class="kw">import</span> ManagedOnlineEndpoint, ManagedOnlineDeployment
+<span class="kw">from</span> azure.identity <span class="kw">import</span> DefaultAzureCredential
+
+ml_client = MLClient(DefaultAzureCredential(), "&lt;sub-id&gt;", "&lt;rg&gt;", "&lt;workspace&gt;")
+
+model_id = "azureml://registries/HuggingFace/models/bert-base-uncased/labels/latest"
+endpoint_name = "hf-ep-demo"
+
+ml_client.begin_create_or_update(ManagedOnlineEndpoint(name=endpoint_name)).wait()
+ml_client.online_deployments.begin_create_or_update(ManagedOnlineDeployment(
+    name="demo",
+    endpoint_name=endpoint_name,
+    model=model_id,
+    instance_type="Standard_NC24ads_A100_v4",   <span class="cm"># GPU SKU는 VM 코어 쿼터를 소비</span>
+    instance_count=1,
+)).wait()</pre>
+<div class="warn">
+  <b>경로 A 제약</b>
+  <code>trust_remote_code=True</code> 가 필요한 모델은 <b>보안상 지원되지 않습니다.</b>
+  Gated 모델은 <code>HuggingFaceTokenConnection</code> 시크릿과 <code>enforce_access_to_default_secret_stores: enabled</code> 엔드포인트가 필요합니다.
+</div>
+
+<h4>경로 C — 자체 가중치 등록 후 배포</h4>
+<p><b>1단계 · 모델 등록</b> — 로컬 파일, 데이터스토어, 잡 출력 중 하나를 가리킵니다.</p>
+<pre><span class="kw">from</span> azure.ai.ml.entities <span class="kw">import</span> Model
+<span class="kw">from</span> azure.ai.ml.constants <span class="kw">import</span> AssetTypes
+
+<span class="cm"># 임의 포맷 가중치 (.pt, .safetensors, 폴더 전체 등)</span>
+ml_client.models.create_or_update(Model(
+    path="./my-model/",
+    type=AssetTypes.CUSTOM_MODEL,
+    name="my-llm",
+))
+
+<span class="cm"># 파인튜닝 잡 출력에서 등록하는 경우 (경로 D)</span>
+ml_client.models.create_or_update(Model(
+    path="azureml://jobs/&lt;run-id&gt;/outputs/artifacts/model/",
+    type=AssetTypes.MLFLOW_MODEL,
+    name="my-finetuned-llm",
+))</pre>
+<p><b>2단계 · 배포</b> — <code>custom</code> 타입은 <code>score.py</code>(<code>init()</code>/<code>run()</code>)와 환경이 <b>필수</b>입니다. <code>mlflow_model</code>·<code>triton_model</code>은 이 두 가지가 필요 없습니다.</p>
+<pre>$schema: https://azuremlschemas.azureedge.net/latest/managedOnlineDeployment.schema.json
+name: blue
+endpoint_name: my-endpoint
+model:
+  path: ./my-model/
+code_configuration:
+  code: ./onlinescoring/
+  scoring_script: score.py
+environment:
+  conda_file: ./environment/conda.yaml
+  image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu22.04:latest
+instance_type: Standard_NC24ads_A100_v4
+instance_count: 1</pre>
+
+<h4>커스텀 LLM을 vLLM으로 서빙하려면 — BYOC</h4>
+<p>Foundry의 vLLM 템플릿을 커스텀 모델에 붙이는 지원 경로는 <b>문서화되어 있지 않습니다.</b> 자체 LLM을 고성능으로 서빙하려면 <b>커스텀 컨테이너(BYOC)</b>로 vLLM 이미지를 직접 올리고 라우트를 지정해야 합니다.</p>
+<pre>environment:
+  image: &lt;your-registry&gt;/vllm-openai:&lt;tag&gt;
+  inference_config:
+    liveness_route:  { port: 8000, path: /health }
+    readiness_route: { port: 8000, path: /health }
+    scoring_route:   { port: 8000, path: /v1/chat/completions }
+instance_type: Standard_NC24ads_A100_v4
+instance_count: 1</pre>
+<div class="warn">
+  <b>지원 범위 주의</b>
+  커스텀 이미지로 인한 문제는 Microsoft 지원팀이 원인 규명을 도와주지 못할 수 있습니다. 장애 시 기본 이미지로 재현 여부를 먼저 확인하도록 요구받게 됩니다.
+  또한 <b>콘텐츠 필터링이 제공되지 않으므로</b> Azure AI Content Safety를 애플리케이션 측에서 직접 연동해야 합니다.
+</div>
+
+<h4>자가 호스팅 vs 카탈로그 등재 요청</h4>
+<table>
+  <thead><tr><th style="width:44%">상황</th><th>권장</th></tr></thead>
+  <tbody>
+    <tr><td>사내 전용 · 파인튜닝 가중치</td><td><b>자가 호스팅</b> (경로 C · D)</td></tr>
+    <tr><td>널리 쓰이는 오픈 모델인데 카탈로그에 없음</td><td><b>카탈로그 등재 요청</b> — 카탈로그 검색창에서 <b>Request a model</b> 또는 <a href="https://forms.office.com/r/dUR3DLqVUP" target="_blank" rel="noopener">모델·용량 요청 폼</a></td></tr>
+    <tr><td>HF에 있고 빠른 배포가 필요</td><td><b>경로 A</b>, 미등재면 <b>경로 B</b></td></tr>
+    <tr><td>파트너 상용 모델</td><td>파트너가 Microsoft와 게시 협의 — 그 전까지는 자가 호스팅</td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <b>참고 문서</b>
+  <a href="https://learn.microsoft.com/en-us/azure/machine-learning/how-to-deploy-models-from-huggingface?view=azureml-api-2" target="_blank" rel="noopener">Deploy models from Hugging Face Hub</a> ·
+  <a href="https://learn.microsoft.com/en-us/azure/machine-learning/how-to-manage-models?view=azureml-api-2" target="_blank" rel="noopener">Register &amp; manage models</a> ·
+  <a href="https://learn.microsoft.com/en-us/azure/machine-learning/how-to-deploy-online-endpoints?view=azureml-api-2" target="_blank" rel="noopener">Deploy to managed online endpoints</a> ·
+  <a href="https://learn.microsoft.com/en-us/azure/machine-learning/how-to-deploy-custom-container?view=azureml-api-2" target="_blank" rel="noopener">Custom container (BYOC)</a> ·
+  <a href="https://learn.microsoft.com/en-us/azure/machine-learning/how-to-manage-quotas?view=azureml-api-2" target="_blank" rel="noopener">Manage Azure ML quotas</a>
+</div>
+
+<h3 id="c3">C3. 코드 마이그레이션 — 바꾸는 것은 두 줄</h3>
 <p>자체 vLLM OpenAI 서버를 쓰고 있었다면, 애플리케이션 변경은 <b>base URL과 인증</b> 뿐입니다.</p>
 
 <h4>Before — 자체 vLLM 엔드포인트</h4>
@@ -781,7 +899,7 @@ poller = client.managed_compute_deployments.begin_create_or_update(
 deployment = poller.result()</pre>
 <p>기존 Terraform/Bicep의 AKS 노드풀 + Helm 차트 정의가 이 한 블록으로 대체됩니다. <code>capacity</code>만 바꾸면 스케일아웃입니다.</p>
 
-<h3 id="c3">C3. 네트워크 · 인증 · 권한</h3>
+<h3 id="c4">C4. 네트워크 · 인증 · 권한</h3>
 <div class="grid g3">
   <div class="card"><h4>프라이빗 네트워킹</h4><p>Private Endpoint가 <b>Foundry 프로젝트 전체</b>에 적용됩니다. Frontier/PTU, Managed Compute, Agents + Tools가 동일한 프라이빗 경계 안에 들어옵니다.</p></div>
   <div class="card"><h4>인증</h4><p><b>Microsoft Entra ID 권장</b>. 계정 키도 지원하지만 키 로테이션 부담이 있으므로 관리 ID 기반을 우선하세요.</p></div>
@@ -806,7 +924,7 @@ deployment = poller.result()</pre>
   </tbody>
 </table>
 
-<h3 id="c4">C4. 관측 — 첫 요청부터 무설정</h3>
+<h3 id="c5">C5. 관측 — 첫 요청부터 무설정</h3>
 <p>Prometheus·Grafana를 직접 구축하지 않아도 Azure Monitor에 메트릭이 자동 수집됩니다. <b>1분 단위</b>로 조회 가능하며 deployment, model, model version, region, status, stream type, API 기준으로 분할할 수 있습니다.</p>
 <table>
   <thead><tr><th style="width:16%">범주</th><th style="width:30%">질문</th><th>메트릭</th></tr></thead>
@@ -850,7 +968,7 @@ deployment = poller.result()</pre>
   벤치마크 데이터 수집은 후자를 사용하세요.
 </div>
 
-<h3 id="c5">C5. 스케일아웃과 캐시 인지 라우팅</h3>
+<h3 id="c6">C6. 스케일아웃과 캐시 인지 라우팅</h3>
 <p>자체 스택에서는 게이트웨이·라우터·세션 어피니티를 직접 구현해야 했지만, Foundry 라우터가 <b>미처리 프롬프트 토큰 부하를 균형화하면서 동시에 캐시 유효성과 세션 지역성을 보존</b>합니다.</p>
 <div class="grid g4">
   <div class="card"><h4>프롬프트 캐시</h4><p>반복되는 프리픽스에 대해 KV 상태를 재사용합니다.</p></div>
@@ -860,7 +978,7 @@ deployment = poller.result()</pre>
 </div>
 <p>스케일 조작은 <b>모델 인스턴스 수 변경</b> 하나뿐입니다. 노드 추가, 스케줄러 튜닝, 라우터 재설정이 필요 없습니다.</p>
 
-<h3 id="c6">C6. 전환 체크리스트</h3>
+<h3 id="c7">C7. 전환 체크리스트</h3>
 <table>
   <thead><tr><th style="width:6%">#</th><th style="width:28%">단계</th><th>확인 항목</th></tr></thead>
   <tbody>
@@ -1042,11 +1160,12 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
     <a class="lvl2" href="#en-b5">B5. Quota structure and Plan B</a>
     <a class="lvl1" href="#en-partC">Part C · How</a>
     <a class="lvl2" href="#en-c1">C1. 5-step deployment</a>
-    <a class="lvl2" href="#en-c2">C2. Code migration</a>
-    <a class="lvl2" href="#en-c3">C3. Network · Auth · Permissions</a>
-    <a class="lvl2" href="#en-c4">C4. Observability</a>
-    <a class="lvl2" href="#en-c5">C5. Scale-out · Cache</a>
-    <a class="lvl2" href="#en-c6">C6. Migration checklist</a>
+    <a class="lvl2" href="#en-c2">C2. Custom models (BYOM)</a>
+    <a class="lvl2" href="#en-c3">C3. Code migration</a>
+    <a class="lvl2" href="#en-c4">C4. Network · Auth · Permissions</a>
+    <a class="lvl2" href="#en-c5">C5. Observability</a>
+    <a class="lvl2" href="#en-c6">C6. Scale-out · Cache</a>
+    <a class="lvl2" href="#en-c7">C7. Migration checklist</a>
     <a class="lvl1" href="#en-partD">Part D · Economics</a>
     <a class="lvl2" href="#en-d1">D1. Cost formula</a>
     <a class="lvl2" href="#en-d2">D2. Scenario simulation</a>
@@ -1068,16 +1187,9 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
     It is organized as benchmark results (Part A) → concepts (Part B) → migration hands-on (Part C) → cost and decision-making (Part D).
   </p>
 
-  <div class="grid g4">
-    <div class="card stat"><div class="n">4</div><div class="l">Just make selections to deploy<br>Model · Template · Accelerator · Instances</div></div>
-    <div class="card stat"><div class="n">10–15 min</div><div class="l">From catalog to endpoint<br>Typical provisioning time</div></div>
-    <div class="card stat"><div class="n">1</div><div class="l">Unified Foundry endpoint<br>Shared across Standard · Provisioned · MC</div></div>
-    <div class="card stat"><div class="n">0</div><div class="l">Clusters to operate yourself<br>Runtime · patching · router handed off</div></div>
-  </div>
-
   <div class="note">
     <b>How to read this document</b>
-    Decision-makers should start with <b>A3 → B1 → B3 → D1</b>, platform engineers with <b>B4 → B5 → C2 → C6</b>, and performance-validation owners with <b>A1 → A2 → C4 → D3</b>.
+    Decision-makers should start with <b>A3 → B1 → B3 → D1</b>, platform engineers with <b>B4 → B5 → C3 → C7</b>, and performance-validation owners with <b>A1 → A2 → C5 → D3</b>.
     Pricing, quota, and roadmap figures are <span class="tag ghost">as of 2026-08</span> and must be re-verified against Azure Pricing before any actual contract.
   </div>
 
@@ -1168,7 +1280,7 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
   <b>Metric source</b>
   Values for Managed Compute configurations can be read directly from Azure Monitor without any additional instrumentation
   (<code>NormalizedTimeToFirstToken</code>, <code>NormalizedTimeBetweenTokens</code>, <code>TokensPerSecond</code>,
-  <code>ContextTokensCacheMatchRate</code>) — <a href="#en-c4">see C4</a>.
+  <code>ContextTokensCacheMatchRate</code>) — <a href="#en-c5">see C5</a>.
 </div>
 
 <div class="ph">
@@ -1335,7 +1447,7 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
   <tbody>
     <tr><td>NVIDIA A100</td><td><code>A100_80GB</code></td><td>80 GB</td><td>$3.95 / GPU-h</td></tr>
     <tr><td>NVIDIA H100</td><td><code>H100_80GB</code></td><td>80 GB</td><td>$7.91 / GPU-h</td></tr>
-    <tr><td>NVIDIA H200</td><td><code>H200_141GB</code></td><td>141 GB</td><td>Selectable in the portal and request form</td></tr>
+    <tr><td>NVIDIA H200</td><td><code>H200_141GB</code></td><td>141 GB</td><td><span class="tag roadmap">Coming soon</span></td></tr>
     <tr><td>AMD MI300X</td><td><code>MI300_192GB</code></td><td><b>192 GB</b></td><td>$7.91 / GPU-h — same rate as H100</td></tr>
   </tbody>
 </table>
@@ -1440,7 +1552,7 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
 <div class="tip">
   <b>What to check on screen</b>
   Copy the <b>Model ID</b> and <b>Deployment template ID</b> from the Step 4 screen directly into
-  the <code>MODEL_ID</code> · <code>TEMPLATE_ID</code> of the <a href="#en-c2">management SDK code in C2</a>. The portal and SDK use the same values.
+  the <code>MODEL_ID</code> · <code>TEMPLATE_ID</code> of the <a href="#en-c3">management SDK code in C3</a>. The portal and SDK use the same values.
 </div>
 
 <h4>What is inside a deployment template (for reference)</h4>
@@ -1488,7 +1600,131 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
 </div>
 <p><b>How to read it</b> — <code>environmentId</code> pins the runtime image version, the environment variables determine context length and parsers, and <code>acceleratorMaps</code> defines the <b>billing unit</b> (GPUs per instance). The 5-minute warmup probe protects rollout decisions.</p>
 
-<h3 id="en-c2">C2. Code migration — you change two lines</h3>
+<h3 id="en-c2">C2. Bringing a model that isn't in the catalog — BYOM</h3>
+<p>This covers cases where you must deploy <b>weights that are not in the catalog</b>: a fine-tuning output, an internal in-house model, or a Hugging Face model that hasn't been onboarded. This is a separate path from the 4-choice flow in C1, and <b>the most important thing is that the constraints are different.</b></p>
+
+<div class="warn">
+  <b>Four constraints to know up front</b>
+  <ul style="margin:6px 0 0">
+    <li><b>A different portal.</b> Managed compute deployment of custom models is only available from a <b>hub-based project in the Foundry (classic) portal</b> or from Azure ML studio. The new Foundry portal does not expose this path.</li>
+    <li><b>The Foundry optimized runtime is not applied automatically.</b> The deployment templates used by catalog models (pinned vLLM version, parsers, concurrency limits) are <b>packaged in the registry alongside the weights</b>. They do not attach to a model you register yourself, so you must supply a <b>scoring script + environment</b> or use the MLflow / Triton / BYOC paths.</li>
+    <li><b>A different kind of quota.</b> These deployments consume <b>Azure ML VM core quota</b> (VM family × region), not Managed Compute accelerator quota. N-series GPUs default to zero cores and must be requested, and Azure ML <b>reserves an extra 20%</b> for upgrades (requesting 10 instances requires quota for 12).</li>
+    <li><b>A different endpoint shape.</b> You get an Azure ML managed online endpoint URL — <code>https://&lt;endpoint&gt;.&lt;region&gt;.inference.ml.azure.com/score</code> — not the unified Foundry endpoint. <b>The two-line migration in C3 does not apply.</b></li>
+  </ul>
+</div>
+
+<h4>Four paths — which one to use</h4>
+<table>
+  <thead><tr><th style="width:16%">Path</th><th style="width:26%">When it applies</th><th>What you need</th><th style="width:14%">Scoring script</th></tr></thead>
+  <tbody>
+    <tr><td><b>A</b> · HF catalog</td><td>Model <b>already in</b> the Hugging Face collection</td><td>Just the model ID: <code>azureml://registries/HuggingFace/models/&lt;name&gt;/labels/latest</code></td><td><span class="tag ok">not needed</span></td></tr>
+    <tr><td><b>B</b> · HF import</td><td>On HF Hub but <b>not in the catalog</b></td><td>Catalog search returns nothing → run the <b>Import model notebook</b> → registers into your workspace</td><td><span class="tag ghost">depends on type</span></td></tr>
+    <tr><td><b>C</b> · Your own weights</td><td>Internal model, self-trained weights, arbitrary format</td><td>Register the model, then deploy. <code>mlflow_model</code>/<code>triton_model</code> are no-code; <code>custom</code> needs <code>score.py</code> + environment</td><td><span class="tag roadmap">varies by type</span></td></tr>
+    <tr><td><b>D</b> · Fine-tuning output</td><td>Output of a Foundry/AML fine-tuning job</td><td>Register the model from the job output → deploy exactly as in path C</td><td><span class="tag ghost">depends on type</span></td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <b>How to pick a path</b>
+  Evaluate in the order <b>A → B → D → C</b> where possible. The higher up the list, the more of the runtime Microsoft manages, and the lower your operational burden.
+  Path C is effectively <b>moving your own serving stack onto Azure ML</b>, which hands runtime and patching responsibility back to you (see the responsibility split in B3).
+</div>
+
+<h4>Path A — Deploying a Hugging Face collection model</h4>
+<p>Portal path: <b>Foundry (classic) → Model Catalog → Collection = HuggingFace → select model → Managed Compute</b>. The SDK equivalent:</p>
+<pre><span class="kw">from</span> azure.ai.ml <span class="kw">import</span> MLClient
+<span class="kw">from</span> azure.ai.ml.entities <span class="kw">import</span> ManagedOnlineEndpoint, ManagedOnlineDeployment
+<span class="kw">from</span> azure.identity <span class="kw">import</span> DefaultAzureCredential
+
+ml_client = MLClient(DefaultAzureCredential(), "&lt;sub-id&gt;", "&lt;rg&gt;", "&lt;workspace&gt;")
+
+model_id = "azureml://registries/HuggingFace/models/bert-base-uncased/labels/latest"
+endpoint_name = "hf-ep-demo"
+
+ml_client.begin_create_or_update(ManagedOnlineEndpoint(name=endpoint_name)).wait()
+ml_client.online_deployments.begin_create_or_update(ManagedOnlineDeployment(
+    name="demo",
+    endpoint_name=endpoint_name,
+    model=model_id,
+    instance_type="Standard_NC24ads_A100_v4",   <span class="cm"># GPU SKUs consume VM core quota</span>
+    instance_count=1,
+)).wait()</pre>
+<div class="warn">
+  <b>Path A limitations</b>
+  Models that require <code>trust_remote_code=True</code> are <b>not supported</b> for security reasons.
+  Gated models require a <code>HuggingFaceTokenConnection</code> secret and an endpoint with <code>enforce_access_to_default_secret_stores: enabled</code>.
+</div>
+
+<h4>Path C — Register your own weights, then deploy</h4>
+<p><b>Step 1 · Register the model</b> — point at local files, a datastore, or a job output.</p>
+<pre><span class="kw">from</span> azure.ai.ml.entities <span class="kw">import</span> Model
+<span class="kw">from</span> azure.ai.ml.constants <span class="kw">import</span> AssetTypes
+
+<span class="cm"># Arbitrary weight formats (.pt, .safetensors, a whole folder, ...)</span>
+ml_client.models.create_or_update(Model(
+    path="./my-model/",
+    type=AssetTypes.CUSTOM_MODEL,
+    name="my-llm",
+))
+
+<span class="cm"># Registering from a fine-tuning job output (path D)</span>
+ml_client.models.create_or_update(Model(
+    path="azureml://jobs/&lt;run-id&gt;/outputs/artifacts/model/",
+    type=AssetTypes.MLFLOW_MODEL,
+    name="my-finetuned-llm",
+))</pre>
+<p><b>Step 2 · Deploy</b> — the <code>custom</code> type <b>requires</b> a <code>score.py</code> (with <code>init()</code>/<code>run()</code>) and an environment. <code>mlflow_model</code> and <code>triton_model</code> need neither.</p>
+<pre>$schema: https://azuremlschemas.azureedge.net/latest/managedOnlineDeployment.schema.json
+name: blue
+endpoint_name: my-endpoint
+model:
+  path: ./my-model/
+code_configuration:
+  code: ./onlinescoring/
+  scoring_script: score.py
+environment:
+  conda_file: ./environment/conda.yaml
+  image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu22.04:latest
+instance_type: Standard_NC24ads_A100_v4
+instance_count: 1</pre>
+
+<h4>Serving a custom LLM with vLLM — BYOC</h4>
+<p>There is <b>no documented path</b> for attaching Foundry's vLLM template to a custom model. To serve your own LLM with comparable performance you must ship a <b>custom container (BYOC)</b> with a vLLM image and declare the routes yourself.</p>
+<pre>environment:
+  image: &lt;your-registry&gt;/vllm-openai:&lt;tag&gt;
+  inference_config:
+    liveness_route:  { port: 8000, path: /health }
+    readiness_route: { port: 8000, path: /health }
+    scoring_route:   { port: 8000, path: /v1/chat/completions }
+instance_type: Standard_NC24ads_A100_v4
+instance_count: 1</pre>
+<div class="warn">
+  <b>Support boundary</b>
+  Microsoft support may not be able to root-cause problems caused by a custom image; you will typically be asked to reproduce the issue on a default image first.
+  Also, <b>no built-in content filtering is provided</b>, so you must integrate Azure AI Content Safety on the application side.
+</div>
+
+<h4>Self-hosting vs. requesting catalog onboarding</h4>
+<table>
+  <thead><tr><th style="width:44%">Situation</th><th>Recommendation</th></tr></thead>
+  <tbody>
+    <tr><td>Internal-only or fine-tuned weights</td><td><b>Self-host</b> (paths C · D)</td></tr>
+    <tr><td>A widely used open model that isn't in the catalog</td><td><b>Request catalog onboarding</b> — <b>Request a model</b> from the catalog search box, or the <a href="https://forms.office.com/r/dUR3DLqVUP" target="_blank" rel="noopener">model &amp; capacity request form</a></td></tr>
+    <tr><td>On HF and you need to ship fast</td><td><b>Path A</b>, or <b>path B</b> if it isn't onboarded</td></tr>
+    <tr><td>A commercial partner model</td><td>The partner must arrange publication with Microsoft — self-host in the meantime</td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <b>Reference docs</b>
+  <a href="https://learn.microsoft.com/en-us/azure/machine-learning/how-to-deploy-models-from-huggingface?view=azureml-api-2" target="_blank" rel="noopener">Deploy models from Hugging Face Hub</a> ·
+  <a href="https://learn.microsoft.com/en-us/azure/machine-learning/how-to-manage-models?view=azureml-api-2" target="_blank" rel="noopener">Register &amp; manage models</a> ·
+  <a href="https://learn.microsoft.com/en-us/azure/machine-learning/how-to-deploy-online-endpoints?view=azureml-api-2" target="_blank" rel="noopener">Deploy to managed online endpoints</a> ·
+  <a href="https://learn.microsoft.com/en-us/azure/machine-learning/how-to-deploy-custom-container?view=azureml-api-2" target="_blank" rel="noopener">Custom container (BYOC)</a> ·
+  <a href="https://learn.microsoft.com/en-us/azure/machine-learning/how-to-manage-quotas?view=azureml-api-2" target="_blank" rel="noopener">Manage Azure ML quotas</a>
+</div>
+
+<h3 id="en-c3">C3. Code migration — you change two lines</h3>
 <p>If you were using your own vLLM OpenAI server, the only application changes are the <b>base URL and authentication</b>.</p>
 
 <h4>Before — self-hosted vLLM endpoint</h4>
@@ -1551,7 +1787,7 @@ poller = client.managed_compute_deployments.begin_create_or_update(
 deployment = poller.result()</pre>
 <p>Your existing Terraform/Bicep AKS node pool + Helm chart definitions are replaced by this single block. Scaling out is just changing <code>capacity</code>.</p>
 
-<h3 id="en-c3">C3. Network · Auth · Permissions</h3>
+<h3 id="en-c4">C4. Network · Auth · Permissions</h3>
 <div class="grid g3">
   <div class="card"><h4>Private networking</h4><p>A Private Endpoint applies to the <b>entire Foundry project</b>. Frontier/PTU, Managed Compute, and Agents + Tools all fall within the same private boundary.</p></div>
   <div class="card"><h4>Authentication</h4><p><b>Microsoft Entra ID recommended.</b> Account keys are also supported, but they carry key-rotation overhead, so prefer managed-identity based auth.</p></div>
@@ -1576,7 +1812,7 @@ deployment = poller.result()</pre>
   </tbody>
 </table>
 
-<h3 id="en-c4">C4. Observability — zero setup from the first request</h3>
+<h3 id="en-c5">C5. Observability — zero setup from the first request</h3>
 <p>Metrics are collected in Azure Monitor automatically, without building your own Prometheus/Grafana. They are queryable at <b>1-minute grain</b> and can be split by deployment, model, model version, region, status, stream type, and API.</p>
 <table>
   <thead><tr><th style="width:16%">Category</th><th style="width:30%">Question</th><th>Metrics</th></tr></thead>
@@ -1620,7 +1856,7 @@ deployment = poller.result()</pre>
   Use the latter for benchmark data collection.
 </div>
 
-<h3 id="en-c5">C5. Scale-out and cache-aware routing</h3>
+<h3 id="en-c6">C6. Scale-out and cache-aware routing</h3>
 <p>In a self-hosted stack you had to implement the gateway, router, and session affinity yourself, but the Foundry router <b>balances the outstanding prompt token load while simultaneously preserving cache validity and session locality</b>.</p>
 <div class="grid g4">
   <div class="card"><h4>Prompt cache</h4><p>Reuses KV state for repeated prefixes.</p></div>
@@ -1630,7 +1866,7 @@ deployment = poller.result()</pre>
 </div>
 <p>The only scaling lever is <b>changing the number of model instances</b>. No adding nodes, tuning the scheduler, or reconfiguring the router is required.</p>
 
-<h3 id="en-c6">C6. Migration checklist</h3>
+<h3 id="en-c7">C7. Migration checklist</h3>
 <table>
   <thead><tr><th style="width:6%">#</th><th style="width:28%">Step</th><th>Items to confirm</th></tr></thead>
   <tbody>
