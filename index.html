@@ -438,19 +438,6 @@ body[data-lang="en"] .lang-ko{display:none}
   이 가설이 성립하는 <b>구체적 조건(모델 크기 · 컨텍스트 길이 · 동시성 구간)</b>을 특정하는 것이 본 테스트의 1차 목적입니다.
 </div>
 
-<h4>3년 TCO 비교 — 온프렘 RTX Pro 대비</h4>
-<table>
-  <thead><tr><th>항목</th><th>Managed Compute (MI300X)</th><th>온프렘 RTX Pro</th></tr></thead>
-  <tbody>
-    <tr><td>초기 CAPEX</td><td>$0</td><td class="tbd">TBD</td></tr>
-    <tr><td>연간 인프라 OPEX</td><td class="tbd">TBD</td><td class="tbd">전력 + 상면 TBD</td></tr>
-    <tr><td>연간 운영 인건비</td><td>$0 (플랫폼 관리)</td><td class="tbd">TBD FTE</td></tr>
-    <tr><td>확장 리드타임</td><td>인스턴스 수 변경 (즉시)</td><td class="tbd">구매 리드타임 TBD</td></tr>
-    <tr><td>Day-0 신규 모델 도입</td><td>카탈로그 즉시</td><td class="tbd">수일~수주</td></tr>
-    <tr><td><b>3년 총계</b></td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
-  </tbody>
-</table>
-
 <h3 id="a4">A4. 워크로드별 권장 구성</h3>
 <table>
   <thead><tr><th style="width:30%">워크로드 조건</th><th style="width:22%">권장 구성</th><th>근거</th></tr></thead>
@@ -984,7 +971,7 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
   <thead><tr><th style="width:14%">시점</th><th>내용</th></tr></thead>
   <tbody>
     <tr><td><span class="tag ok">Now</span></td><td>베이스 카탈로그 모델 · 프라이빗 네트워킹 · 캐싱 + 어피니티 라우팅 · 기본 쿼터 8/SKU · Global Managed Compute</td></tr>
-    <tr><td><span class="tag roadmap">Next</span></td><td>Data Zone Managed Compute · Capacity Reservations</td></tr>
+    <tr><td><span class="tag roadmap">Next</span></td><td>Data Zone Managed Compute · Capacity Reservations · <b>오토스케일링</b> · <b>H200 가속기</b></td></tr>
     <tr><td><span class="tag roadmap">Ignite 2026</span></td><td>GA 예정 (Ignite 2026 이전 목표)</td></tr>
     <tr><td><span class="tag roadmap">Expand</span></td><td>Full-weight BYOW(자체 가중치) · LoRA 어댑터 · Commerce Reservations</td></tr>
   </tbody>
@@ -994,6 +981,8 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
   <ul style="margin:6px 0 0">
     <li><b>Public Preview</b> — SLA가 제공되지 않으며 프로덕션 워크로드에는 아직 권장되지 않습니다. 고객 제안 시 반드시 명시하세요.</li>
     <li><b>콘텐츠 필터링 미적용</b> — Azure AI Content Safety 필터가 Managed Compute 데이터 경로에 포함되어 있지 않습니다. 요청/응답 필터링이 필요하면 애플리케이션에서 Content Safety API를 직접 호출해야 합니다.</li>
+    <li><b>오토스케일링 미지원</b> — 현재는 <b>모델 인스턴스 수를 수동으로 조정</b>해야 합니다. 트래픽 변동에 따른 자동 확장·축소는 <b>로드맵에 포함</b>되어 있으나 아직 제공되지 않으므로, 피크 기준으로 인스턴스를 잡거나 외부 자동화로 조정해야 합니다.</li>
+    <li><b>H200 미지원</b> — 현재 선택 가능한 가속기는 A100 · H100 · MI300X입니다. <b>H200(<code>H200_141GB</code>)은 곧 지원</b>될 예정입니다(<a href="#b5">B5 참조</a>).</li>
     <li><b>커스텀 가중치(BYOW)는 아직 미지원</b> — 파인튜닝 모델을 서빙해야 한다면 로드맵 시점까지 IaaS 병행이 필요합니다.</li>
     <li><b>데이터 레지던시는 Global</b> — 처리 위치를 데이터 존 내로 한정해야 하는 요건이 있다면 Data Zone GA를 기다려야 합니다.</li>
     <li><b>기본 쿼터 8/SKU</b> — 대규모 배포는 <a href="#b5">사전 쿼터 상향 요청</a>이 필수입니다.</li>
@@ -1216,19 +1205,6 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
   <b>that throughput lead translates directly into a $/token lead</b>.
   Identifying the <b>specific conditions (model size · context length · concurrency range)</b> under which this hypothesis holds is the primary goal of this test.
 </div>
-
-<h4>3-year TCO comparison — vs. on-prem RTX Pro</h4>
-<table>
-  <thead><tr><th>Item</th><th>Managed Compute (MI300X)</th><th>On-prem RTX Pro</th></tr></thead>
-  <tbody>
-    <tr><td>Initial CAPEX</td><td>$0</td><td class="tbd">TBD</td></tr>
-    <tr><td>Annual infrastructure OPEX</td><td class="tbd">TBD</td><td class="tbd">Power + facilities TBD</td></tr>
-    <tr><td>Annual operations labor</td><td>$0 (platform-managed)</td><td class="tbd">TBD FTE</td></tr>
-    <tr><td>Scaling lead time</td><td>Change instance count (immediate)</td><td class="tbd">Purchase lead time TBD</td></tr>
-    <tr><td>Day-0 new model adoption</td><td>Instant from catalog</td><td class="tbd">Days to weeks</td></tr>
-    <tr><td><b>3-year total</b></td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
-  </tbody>
-</table>
 
 <h3 id="en-a4">A4. Recommended configurations by workload</h3>
 <table>
@@ -1763,7 +1739,7 @@ $ / 1M tokens            = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
   <thead><tr><th style="width:14%">Timeframe</th><th>Details</th></tr></thead>
   <tbody>
     <tr><td><span class="tag ok">Now</span></td><td>Base catalog models · private networking · caching + affinity routing · default quota 8/SKU · Global Managed Compute</td></tr>
-    <tr><td><span class="tag roadmap">Next</span></td><td>Data Zone Managed Compute · Capacity Reservations</td></tr>
+    <tr><td><span class="tag roadmap">Next</span></td><td>Data Zone Managed Compute · Capacity Reservations · <b>Autoscaling</b> · <b>H200 accelerator</b></td></tr>
     <tr><td><span class="tag roadmap">Ignite 2026</span></td><td>GA planned (target before Ignite 2026)</td></tr>
     <tr><td><span class="tag roadmap">Expand</span></td><td>Full-weight BYOW (bring your own weights) · LoRA adapters · Commerce Reservations</td></tr>
   </tbody>
@@ -1773,6 +1749,8 @@ $ / 1M tokens            = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
   <ul style="margin:6px 0 0">
     <li><b>Public Preview</b> — No SLA is provided and it is not yet recommended for production workloads. Always state this clearly when proposing to customers.</li>
     <li><b>No content filtering applied</b> — Azure AI Content Safety filters are not included in the Managed Compute data path. If request/response filtering is required, the application must call the Content Safety API directly.</li>
+    <li><b>No autoscaling</b> — You currently have to <b>adjust the model instance count manually</b>. Automatic scale-out and scale-in based on traffic is <b>on the roadmap</b> but not available yet, so size for peak or drive scaling from external automation.</li>
+    <li><b>H200 not available yet</b> — The selectable accelerators today are A100 · H100 · MI300X. <b>H200 (<code>H200_141GB</code>) is coming soon</b> (see <a href="#en-b5">B5</a>).</li>
     <li><b>Custom weights (BYOW) not yet supported</b> — If you need to serve a fine-tuned model, you must run IaaS in parallel until the roadmap date.</li>
     <li><b>Data residency is Global</b> — If you have a requirement to confine processing within a data zone, you must wait for Data Zone GA.</li>
     <li><b>Default quota 8/SKU</b> — Large deployments require a <a href="#en-b5">quota increase request in advance</a>.</li>
