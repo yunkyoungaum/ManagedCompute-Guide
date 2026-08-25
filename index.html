@@ -1,0 +1,1862 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Foundry Managed Compute 전환 가이드 — IaaS GPU VM에서 Managed Compute로</title>
+<script>
+  (() => {
+    const param = new URLSearchParams(window.location.search).get("scoutTheme");
+    const theme =
+      param || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    document.documentElement.setAttribute("data-theme", theme);
+  })();
+</script>
+<style>
+:root {
+  color-scheme: light;
+  --cp-bg: #f7f4ef;
+  --cp-bg-elevated: #fcfbf8;
+  --cp-surface: #ffffff;
+  --cp-surface-soft: #f5f5f5;
+  --cp-border: #dedede;
+  --cp-border-strong: #919191;
+  --cp-text: #242424;
+  --cp-text-muted: #5c5c5c;
+  --cp-text-soft: #6f6f6f;
+  --cp-accent: #b11f4b;
+  --cp-accent-hover: #9a1a41;
+  --cp-accent-soft: rgba(177, 31, 75, 0.08);
+  --cp-accent-fg: #ffffff;
+  --cp-success: #16a34a;
+  --cp-danger: #dc2626;
+  --cp-warning: #f59e0b;
+  --cp-link: #0078d4;
+  --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
+  --cp-overlay: rgba(255, 255, 255, 0.8);
+  --cp-panel: rgba(255, 255, 255, 0.86);
+  --cp-panel-strong: rgba(255, 255, 255, 0.96);
+  --cp-sheen: rgba(255, 255, 255, 0.55);
+  --cp-highlight: rgba(177, 31, 75, 0.12);
+}
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --cp-bg: #3d3b3a;
+  --cp-bg-elevated: #343231;
+  --cp-surface: #292929;
+  --cp-surface-soft: #2e2e2e;
+  --cp-border: #474747;
+  --cp-border-strong: #5f5f5f;
+  --cp-text: #dedede;
+  --cp-text-muted: #919191;
+  --cp-text-soft: #b0b0b0;
+  --cp-accent: #fd8ea1;
+  --cp-accent-hover: #fb7b91;
+  --cp-accent-soft: rgba(253, 142, 161, 0.14);
+  --cp-accent-fg: #1a1a1a;
+  --cp-success: #4ade80;
+  --cp-danger: #f87171;
+  --cp-warning: #fbbf24;
+  --cp-link: #4da6ff;
+  --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+  --cp-overlay: rgba(41, 41, 41, 0.88);
+  --cp-panel: rgba(41, 41, 41, 0.72);
+  --cp-panel-strong: rgba(41, 41, 41, 0.96);
+  --cp-sheen: rgba(255, 255, 255, 0.04);
+  --cp-highlight: rgba(253, 142, 161, 0.12);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+body {
+  margin: 0;
+  background: var(--cp-bg);
+  color: var(--cp-text);
+  font-family: "Segoe UI", Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 15.5px;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}
+code, pre, .mono { font-family: Consolas, "Courier New", Courier, monospace; }
+
+/* ---------- Layout ---------- */
+.wrap { display: flex; max-width: 1400px; margin: 0 auto; align-items: flex-start; }
+aside {
+  position: sticky; top: 0; height: 100vh; flex: 0 0 288px;
+  overflow-y: auto; padding: 28px 16px 48px 24px;
+  border-right: 1px solid var(--cp-border);
+  background: var(--cp-bg-elevated);
+}
+main { flex: 1 1 auto; min-width: 0; padding: 40px 48px 120px; }
+
+/* ---------- Sidebar ---------- */
+.brand { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--cp-accent); font-weight: 700; margin-bottom: 4px; }
+.brand-sub { font-size: 17px; font-weight: 700; line-height: 1.35; margin-bottom: 22px; }
+nav a {
+  display: block; padding: 5px 10px; margin: 1px 0; border-radius: 0.625rem;
+  color: var(--cp-text-muted); text-decoration: none; font-size: 13.5px; border-left: 2px solid transparent;
+}
+nav a:hover { background: var(--cp-accent-soft); color: var(--cp-text); }
+nav a.lvl1 { font-weight: 700; color: var(--cp-text); margin-top: 16px; font-size: 13px; letter-spacing: .05em; text-transform: uppercase; }
+nav a.lvl2 { padding-left: 18px; }
+nav a.active { color: var(--cp-accent); border-left-color: var(--cp-accent); background: var(--cp-accent-soft); font-weight: 600; }
+
+/* ---------- Typography ---------- */
+h1 { font-size: 34px; line-height: 1.25; margin: 0 0 10px; letter-spacing: -0.01em; }
+h2 {
+  font-size: 25px; margin: 56px 0 14px; padding-top: 22px;
+  border-top: 1px solid var(--cp-border); letter-spacing: -0.01em;
+}
+h2:first-of-type { border-top: none; padding-top: 0; }
+h3 { font-size: 18.5px; margin: 34px 0 10px; }
+h4 { font-size: 15.5px; margin: 22px 0 8px; color: var(--cp-text-muted); text-transform: uppercase; letter-spacing: .06em; font-size: 12.5px; }
+p { margin: 10px 0; }
+a { color: var(--cp-link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+ul, ol { padding-left: 22px; margin: 10px 0; }
+li { margin: 5px 0; }
+strong { font-weight: 700; }
+hr { border: none; border-top: 1px solid var(--cp-border); margin: 32px 0; }
+
+.eyebrow { font-size: 11.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--cp-accent); font-weight: 700; }
+.lede { font-size: 17px; color: var(--cp-text-muted); margin: 8px 0 26px; }
+
+/* ---------- Components ---------- */
+.card {
+  background: var(--cp-surface); border: 1px solid var(--cp-border);
+  border-radius: 16px; padding: 20px 22px; margin: 18px 0;
+  box-shadow: 0 0 2px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.14);
+}
+.grid { display: grid; gap: 14px; margin: 18px 0; }
+.g2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+.g3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+.g4 { grid-template-columns: repeat(4, minmax(0,1fr)); }
+@media (max-width: 1080px) { .g3, .g4 { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+@media (max-width: 720px) { .g2, .g3, .g4 { grid-template-columns: 1fr; } }
+
+.stat { text-align: left; }
+.stat .n { font-size: 27px; font-weight: 700; color: var(--cp-accent); line-height: 1.1; }
+.stat .l { font-size: 12.5px; color: var(--cp-text-muted); margin-top: 4px; }
+
+table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--cp-border); vertical-align: top; }
+th { background: var(--cp-surface-soft); font-weight: 700; font-size: 12.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--cp-text-muted); }
+tbody tr:hover { background: var(--cp-accent-soft); }
+td code { font-size: 12.5px; }
+
+pre {
+  background: var(--cp-surface-soft); border: 1px solid var(--cp-border);
+  border-radius: 0.625rem; padding: 16px 18px; overflow-x: auto;
+  font-size: 13px; line-height: 1.62; margin: 14px 0;
+}
+p code, li code, td code {
+  background: var(--cp-surface-soft); border: 1px solid var(--cp-border);
+  border-radius: 5px; padding: 1px 5px; font-size: 12.8px;
+}
+.cm { color: var(--cp-text-soft); }
+.kw { color: var(--cp-accent); }
+
+.note, .warn, .tip {
+  border-left: 3px solid var(--cp-accent); background: var(--cp-accent-soft);
+  border-radius: 0.625rem; padding: 13px 17px; margin: 16px 0; font-size: 14.2px;
+}
+.warn { border-left-color: var(--cp-warning); background: rgba(245,158,11,0.09); }
+.tip  { border-left-color: var(--cp-success); background: rgba(22,163,74,0.09); }
+.note > b:first-child, .warn > b:first-child, .tip > b:first-child { display: block; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 4px; color: var(--cp-text-muted); }
+
+.tag {
+  display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; padding: 2px 8px; border-radius: 20px;
+  background: var(--cp-accent); color: var(--cp-accent-fg); vertical-align: middle;
+}
+.tag.roadmap { background: var(--cp-warning); color: #1a1a1a; }
+.tag.ok { background: var(--cp-success); color: #fff; }
+.tag.ghost { background: transparent; color: var(--cp-text-muted); border: 1px solid var(--cp-border-strong); }
+
+.steps { counter-reset: s; list-style: none; padding: 0; }
+.steps > li {
+  counter-increment: s; position: relative; padding-left: 46px; margin: 16px 0;
+}
+.steps > li::before {
+  content: counter(s); position: absolute; left: 0; top: 1px;
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--cp-accent); color: var(--cp-accent-fg);
+  font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center;
+}
+.steps h3 { margin: 0 0 3px; font-size: 16.5px; }
+
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 16px 0; }
+.flow .box {
+  background: var(--cp-surface); border: 1px solid var(--cp-border-strong);
+  border-radius: 0.625rem; padding: 8px 13px; font-size: 13px; font-weight: 600;
+}
+.flow .arw { color: var(--cp-accent); font-weight: 700; }
+
+.kpi { border-left: 3px solid var(--cp-accent); padding-left: 14px; margin: 14px 0; }
+
+footer { border-top: 1px solid var(--cp-border); margin-top: 60px; padding-top: 22px; font-size: 13px; color: var(--cp-text-muted); }
+
+/* ---------- Figures ---------- */
+figure {
+  margin: 20px 0; padding: 0;
+  border: 1px solid var(--cp-border); border-radius: 16px;
+  background: var(--cp-surface); overflow: hidden;
+  box-shadow: 0 0 2px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.14);
+}
+figure img { display: block; width: 100%; height: auto; background: var(--cp-surface-soft); }
+html[data-theme="dark"] figure img { filter: brightness(.92) contrast(1.02); }
+figcaption {
+  font-size: 12.8px; color: var(--cp-text-muted);
+  padding: 9px 14px; border-top: 1px solid var(--cp-border);
+  background: var(--cp-bg-elevated);
+}
+figcaption b { color: var(--cp-text); }
+.figrow { display: grid; gap: 14px; margin: 20px 0; }
+.figrow.two { grid-template-columns: repeat(2, minmax(0,1fr)); }
+.figrow figure { margin: 0; }
+@media (max-width: 900px) { .figrow.two { grid-template-columns: 1fr; } }
+
+/* ---------- Placeholder ---------- */
+.ph {
+  border: 2px dashed var(--cp-border-strong); border-radius: 16px;
+  background: repeating-linear-gradient(45deg, var(--cp-surface-soft), var(--cp-surface-soft) 10px, var(--cp-surface) 10px, var(--cp-surface) 20px);
+  padding: 26px 22px; margin: 18px 0; text-align: center;
+}
+.ph .ph-t { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+.ph .ph-d { font-size: 13.5px; color: var(--cp-text-muted); }
+.tbd { color: var(--cp-text-soft); font-style: italic; }
+td.tbd, th.tbd { text-align: center; }
+
+.toptag { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+.mobonly { display: none; }
+@media (max-width: 900px) {
+  .wrap { flex-direction: column; }
+  aside { position: static; height: auto; width: 100%; flex: none; border-right: none; border-bottom: 1px solid var(--cp-border); padding: 20px; }
+  main { padding: 24px 20px 80px; }
+  h1 { font-size: 27px; }
+}
+
+/* ---------- language toggle ---------- */
+.langbar{position:fixed;top:14px;right:16px;z-index:99;display:flex;gap:0;
+  background:var(--cp-panel-strong);border:1px solid var(--cp-border);
+  border-radius:999px;padding:3px;box-shadow:var(--cp-shadow);backdrop-filter:blur(8px)}
+.langbar button{appearance:none;border:0;cursor:pointer;font:inherit;font-size:13px;font-weight:600;
+  padding:6px 14px;border-radius:999px;color:var(--cp-text-muted);background:transparent;transition:.15s}
+.langbar button:hover{color:var(--cp-text)}
+.langbar button[aria-pressed="true"]{background:var(--cp-accent);color:var(--cp-accent-fg)}
+body[data-lang="ko"] .lang-en{display:none}
+body[data-lang="en"] .lang-ko{display:none}
+@media print{.langbar{display:none}}
+@media (max-width:900px){.langbar{top:8px;right:8px}}
+</style>
+</head>
+<body data-lang="ko">
+<div class="langbar" role="group" aria-label="Language">
+  <button type="button" data-lang-btn="ko" aria-pressed="true">한국어</button>
+  <button type="button" data-lang-btn="en" aria-pressed="false">English</button>
+</div>
+<div class="wrap lang-ko">
+<aside>
+  <div class="brand">Microsoft Foundry</div>
+  <div class="brand-sub">Managed Compute<br>전환 가이드</div>
+  <nav class="toc">
+    <a class="lvl1" href="#partA">Part A · Benchmark</a>
+    <a class="lvl2" href="#a1">A1. 테스트 설계</a>
+    <a class="lvl2" href="#a2">A2. 처리량 · 지연</a>
+    <a class="lvl2" href="#a3">A3. 가성비 결과</a>
+    <a class="lvl2" href="#a4">A4. 워크로드별 권장</a>
+    <a class="lvl1" href="#partB">Part B · What</a>
+    <a class="lvl2" href="#b1">B1. 3가지 배포 타입</a>
+    <a class="lvl2" href="#b2">B2. 4-선택 모델</a>
+    <a class="lvl2" href="#b3">B3. 책임 분계선</a>
+    <a class="lvl2" href="#b4">B4. IaaS VM ↔ MC 매핑</a>
+    <a class="lvl2" href="#b5">B5. 쿼터 구조와 플랜 B</a>
+    <a class="lvl1" href="#partC">Part C · How</a>
+    <a class="lvl2" href="#c1">C1. 5단계 배포</a>
+    <a class="lvl2" href="#c2">C2. 코드 마이그레이션</a>
+    <a class="lvl2" href="#c3">C3. 네트워크 · 인증 · 권한</a>
+    <a class="lvl2" href="#c4">C4. 관측</a>
+    <a class="lvl2" href="#c5">C5. 스케일아웃 · 캐시</a>
+    <a class="lvl2" href="#c6">C6. 전환 체크리스트</a>
+    <a class="lvl1" href="#partD">Part D · Economics</a>
+    <a class="lvl2" href="#d1">D1. 비용 공식</a>
+    <a class="lvl2" href="#d2">D2. 시나리오 시뮬레이션</a>
+    <a class="lvl2" href="#d3">D3. $/1M 토큰 산출법</a>
+    <a class="lvl2" href="#d4">D4. 제약 · 로드맵</a>
+    <a class="lvl1" href="#refs">참고 문서</a>
+  </nav>
+</aside>
+
+<main>
+  <div class="toptag">
+    <span class="eyebrow">Foundry Managed Compute</span>
+    <span class="tag ghost">v2.0 · 2026-08-25</span>
+    <span class="tag roadmap">Public Preview</span>
+  </div>
+  <h1>IaaS GPU VM에서 Foundry Managed Compute로</h1>
+  <p class="lede">
+    직접 운영하던 GPU VM 기반 추론 스택을 Foundry Managed Compute로 옮기기 위한 실무 가이드.
+    벤치마크 결과(Part A) → 개념(Part B) → 전환 실습(Part C) → 비용·의사결정(Part D) 순으로 구성했습니다.
+  </p>
+
+  <div class="grid g4">
+    <div class="card stat"><div class="n">4</div><div class="l">선택만 하면 배포 완료<br>모델 · 템플릿 · 가속기 · 인스턴스</div></div>
+    <div class="card stat"><div class="n">10–15분</div><div class="l">카탈로그에서 엔드포인트까지<br>일반적인 프로비저닝 시간</div></div>
+    <div class="card stat"><div class="n">1</div><div class="l">통합 Foundry 엔드포인트<br>Standard · Provisioned · MC 공통</div></div>
+    <div class="card stat"><div class="n">0</div><div class="l">직접 운영할 클러스터<br>런타임 · 패치 · 라우터 이관</div></div>
+  </div>
+
+  <div class="note">
+    <b>이 문서를 읽는 순서</b>
+    의사결정자는 <b>A3 → B1 → B3 → D1</b>, 플랫폼 엔지니어는 <b>B4 → B5 → C2 → C6</b>, 성능 검증 담당은 <b>A1 → A2 → C4 → D3</b> 을 먼저 보시면 됩니다.
+    가격·쿼터·로드맵 수치는 <span class="tag ghost">2026-08 기준</span> 이며 실제 계약 전 Azure Pricing으로 재확인이 필요합니다.
+  </div>
+
+<!-- ============================ PART A ============================ -->
+<h2 id="partA">Part A · 벤치마크 성능 테스트 결과</h2>
+<div class="warn">
+  <b>Placeholder — 측정 대기</b>
+  이 파트의 모든 수치는 <b>실측 결과로 대체될 자리표시자</b>입니다. 표의 <span class="tbd">TBD</span> 셀을 채우면
+  <a href="#d2">D2 시나리오 시뮬레이션</a>과 <a href="#d3">D3 $/1M 토큰</a> 계산이 자동으로 완성되는 구조입니다.
+  <b>확정 전까지 고객에게 배포하지 마세요.</b>
+</div>
+
+<h3 id="a1">A1. 테스트 설계</h3>
+<h4>비교군</h4>
+<table>
+  <thead><tr><th style="width:8%">ID</th><th style="width:26%">구성</th><th>세부 사양</th><th style="width:16%">시간당 단가</th></tr></thead>
+  <tbody>
+    <tr><td><b>MC-MI</b></td><td>MI300X on Managed Compute</td><td>MI300X 192GB × <span class="tbd">TBD</span> / instance</td><td>$7.91 / GPU-h</td></tr>
+    <tr><td><b>MC-H</b></td><td>H100 on Managed Compute</td><td>H100 80GB × <span class="tbd">TBD</span> / instance</td><td>$7.91 / GPU-h</td></tr>
+    <tr><td><b>MC-A</b></td><td>A100 on Managed Compute</td><td>A100 80GB × <span class="tbd">TBD</span> / instance</td><td>$3.95 / GPU-h</td></tr>
+    <tr><td><b>MC-H2</b> <span class="tag ghost">선택</span></td><td>H200 on Managed Compute</td><td>H200 141GB × <span class="tbd">TBD</span> / instance</td><td class="tbd">TBD</td></tr>
+    <tr><td><b>IAAS</b></td><td>IaaS VM 자체 vLLM</td><td><span class="tbd">VM SKU TBD</span> · 자체 운영</td><td><span class="tbd">TBD</span></td></tr>
+    <tr><td><b>RTX</b></td><td>RTX Pro (온프렘/견적)</td><td><span class="tbd">모델·카드 수 TBD</span></td><td><span class="tbd">CAPEX 환산 TBD</span></td></tr>
+  </tbody>
+</table>
+
+<h4>테스트 매트릭스</h4>
+<table>
+  <thead><tr><th style="width:16%">축</th><th>설정</th></tr></thead>
+  <tbody>
+    <tr><td><b>모델</b></td><td>중형(20–30B급) <span class="tbd">모델명 TBD</span> · 대형/MoE <span class="tbd">모델명 TBD</span> — MI300X 192GB 이점이 드러나는 사이즈 필수 포함</td></tr>
+    <tr><td><b>컨텍스트</b></td><td>단문 템플릿(16K급) / 장문 템플릿(128K–256K급) 양쪽</td></tr>
+    <tr><td><b>부하 패턴</b></td><td>① 짧은 프롬프트·고동시성(챗) ② 긴 프롬프트(RAG·에이전트) ③ 멀티턴 세션(캐시 히트) ④ 배치·오프라인 생성</td></tr>
+    <tr><td><b>동시성</b></td><td>1 / 8 / 32 / 64 / 128 / <span class="tbd">saturation point TBD</span></td></tr>
+    <tr><td><b>I/O 토큰비</b></td><td>실 트래픽 반영 — <span class="tbd">입력:출력 = TBD</span></td></tr>
+    <tr><td><b>하네스</b></td><td>vLLM <code>benchmark_serving</code> (동일 프롬프트셋·시드 고정)</td></tr>
+    <tr><td><b>SLO 기준</b></td><td>TTFT p95 &lt; <span class="tbd">TBD ms</span>, TBT p95 &lt; <span class="tbd">TBD ms</span></td></tr>
+    <tr><td><b>측정 조건</b></td><td>워밍업 <span class="tbd">TBD</span>분 후 <span class="tbd">TBD</span>분 정상상태 측정, 3회 반복 중앙값</td></tr>
+  </tbody>
+</table>
+<div class="note">
+  <b>결과의 신뢰도를 좌우하는 조건</b>
+  <b>SLO를 고정한 상태의 처리량</b>만 유효합니다. SLO 없이 뽑은 최대 처리량은 실서비스에서 재현되지 않으며 고객 검증 단계에서 반박당합니다.
+  비교군 전체에 동일한 프롬프트셋·토큰 분포·시드를 적용했음을 명시하세요.
+</div>
+
+<h3 id="a2">A2. 처리량 · 지연 결과</h3>
+<h4>시나리오 1 — 짧은 프롬프트 / 고동시성 (챗)</h4>
+<table>
+  <thead><tr>
+    <th>구성</th><th>TTFT p50</th><th>TTFT p95</th><th>TBT p95</th><th>Output TPS</th><th>최대 동시성<br>(SLO 충족)</th>
+  </tr></thead>
+  <tbody>
+    <tr><td><b>MC-MI</b> MI300X</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+    <tr><td><b>MC-H</b> H100</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+    <tr><td><b>MC-A</b> A100</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+    <tr><td><b>IAAS</b> 자체 vLLM</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+    <tr><td><b>RTX</b> RTX Pro</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+  </tbody>
+</table>
+
+<h4>시나리오 2 — 긴 프롬프트 (RAG · 에이전트)</h4>
+<table>
+  <thead><tr>
+    <th>구성</th><th>TTFT p50</th><th>TTFT p95</th><th>TBT p95</th><th>Output TPS</th><th>최대 동시성<br>(SLO 충족)</th>
+  </tr></thead>
+  <tbody>
+    <tr><td><b>MC-MI</b> MI300X</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+    <tr><td><b>MC-H</b> H100</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+    <tr><td><b>MC-A</b> A100</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+    <tr><td><b>IAAS</b> 자체 vLLM</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+    <tr><td><b>RTX</b> RTX Pro</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+  </tbody>
+</table>
+
+<h4>시나리오 3 — 멀티턴 세션 (프리픽스 캐시 효과)</h4>
+<table>
+  <thead><tr>
+    <th>구성</th><th>캐시 히트율</th><th>TTFT 개선폭</th><th>유효 Output TPS</th><th>비고</th>
+  </tr></thead>
+  <tbody>
+    <tr><td><b>MC-MI</b> MI300X</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">—</td></tr>
+    <tr><td><b>MC-H</b> H100</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">—</td></tr>
+    <tr><td><b>IAAS</b> 자체 vLLM</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td>자체 라우터 어피니티 구현 여부에 좌우</td></tr>
+  </tbody>
+</table>
+<div class="note">
+  <b>메트릭 출처</b>
+  Managed Compute 구성의 값은 별도 계측 없이 Azure Monitor에서 그대로 조회할 수 있습니다
+  (<code>NormalizedTimeToFirstToken</code>, <code>NormalizedTimeBetweenTokens</code>, <code>TokensPerSecond</code>,
+  <code>ContextTokensCacheMatchRate</code>) — <a href="#c4">C4 참조</a>.
+</div>
+
+<div class="ph">
+  <div class="ph-t">그래프 자리 — 동시성 대비 처리량 / TTFT 곡선</div>
+  <div class="ph-d">구성별 saturation point가 드러나는 이중축 차트. 측정 완료 후 이미지 삽입 예정.</div>
+</div>
+
+<h3 id="a3">A3. 가성비 결과 — $ / 1M 토큰</h3>
+<p>산출 공식은 <a href="#d3">D3</a>과 동일합니다. 아래 표가 <b>이 문서 전체의 결론</b>에 해당합니다.</p>
+<table>
+  <thead><tr>
+    <th>구성</th><th>시간당 비용</th><th>Output TPS<br>(SLO 충족)</th><th>$ / 1M output tokens</th><th>MC-H 대비</th>
+  </tr></thead>
+  <tbody>
+    <tr><td><b>MC-MI</b> MI300X</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+    <tr><td><b>MC-H</b> H100</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td>기준 (1.00×)</td></tr>
+    <tr><td><b>MC-A</b> A100</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+    <tr><td><b>IAAS</b> 자체 vLLM</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+    <tr><td><b>RTX</b> RTX Pro</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+  </tbody>
+</table>
+<div class="tip">
+  <b>가설 — 실측으로 검증할 것</b>
+  MI300X와 H100은 <b>시간당 단가가 $7.91로 동일</b>합니다. 따라서 MI300X가 192GB 메모리 이점으로
+  더 높은 동시성·처리량을 낸다면 <b>그 처리량 우위가 그대로 $/토큰 우위</b>가 됩니다.
+  이 가설이 성립하는 <b>구체적 조건(모델 크기 · 컨텍스트 길이 · 동시성 구간)</b>을 특정하는 것이 본 테스트의 1차 목적입니다.
+</div>
+
+<h4>3년 TCO 비교 — 온프렘 RTX Pro 대비</h4>
+<table>
+  <thead><tr><th>항목</th><th>Managed Compute (MI300X)</th><th>온프렘 RTX Pro</th></tr></thead>
+  <tbody>
+    <tr><td>초기 CAPEX</td><td>$0</td><td class="tbd">TBD</td></tr>
+    <tr><td>연간 인프라 OPEX</td><td class="tbd">TBD</td><td class="tbd">전력 + 상면 TBD</td></tr>
+    <tr><td>연간 운영 인건비</td><td>$0 (플랫폼 관리)</td><td class="tbd">TBD FTE</td></tr>
+    <tr><td>확장 리드타임</td><td>인스턴스 수 변경 (즉시)</td><td class="tbd">구매 리드타임 TBD</td></tr>
+    <tr><td>Day-0 신규 모델 도입</td><td>카탈로그 즉시</td><td class="tbd">수일~수주</td></tr>
+    <tr><td><b>3년 총계</b></td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+  </tbody>
+</table>
+
+<h3 id="a4">A4. 워크로드별 권장 구성</h3>
+<table>
+  <thead><tr><th style="width:30%">워크로드 조건</th><th style="width:22%">권장 구성</th><th>근거</th></tr></thead>
+  <tbody>
+    <tr><td>대형 모델 · 긴 컨텍스트 · 고동시성</td><td class="tbd">TBD</td><td class="tbd">A2/A3 결과 인용</td></tr>
+    <tr><td>중형 모델 · 짧은 프롬프트 · 저지연 우선</td><td class="tbd">TBD</td><td class="tbd">A2/A3 결과 인용</td></tr>
+    <tr><td>배치 · 오프라인 대량 생성</td><td class="tbd">TBD</td><td class="tbd">A2/A3 결과 인용</td></tr>
+    <tr><td>간헐적 · 버스티 트래픽</td><td class="tbd">TBD</td><td>GPU 상시 점유 대비 토큰 과금 유불리 판단</td></tr>
+    <tr><td>커스텀 커널 · 노드 제어 필요</td><td>IaaS 유지</td><td>Managed Compute 적합 범위 밖</td></tr>
+  </tbody>
+</table>
+
+<div class="ph">
+  <div class="ph-t">고객 실 트래픽 기준 예상 월 비용 · 절감액</div>
+  <div class="ph-d">
+    현행 프로파일(피크 동시성 · 일일 토큰 · 현 GPU 대수 및 실사용률) 확보 후 산출.
+    필요 인스턴스 수 → 월 비용 → 현행 대비 절감액 순으로 채웁니다.
+  </div>
+</div>
+
+<!-- ============================ PART B ============================ -->
+<h2 id="partB">Part B · What — Managed Compute란 무엇인가</h2>
+
+<h3 id="b1">B1. 3가지 배포 타입, 하나의 엔드포인트</h3>
+<p>Foundry는 세 가지 배포 타입을 제공하며, <b>세 가지 모두 동일한 엔드포인트·인증·SDK·프라이빗 네트워크·관측·청구서</b>를 공유합니다. 즉 배포 타입 선택은 아키텍처 결정이 아니라 <b>과금·용량 모델 결정</b>입니다.</p>
+<table>
+  <thead><tr><th>배포 타입</th><th>과금 단위</th><th>적합한 상황</th><th>모델 범위</th></tr></thead>
+  <tbody>
+    <tr><td><b>Standard</b></td><td>입력/출력 토큰당</td><td>버스트 트래픽, 가장 낮은 진입 장벽</td><td>Frontier 중심</td></tr>
+    <tr><td><b>Provisioned (PTU)</b></td><td>처리량 단위 예약</td><td>예측 가능한 지속 부하</td><td>Frontier 중심</td></tr>
+    <tr><td><b>Managed Compute</b> <span class="tag">본 가이드</span></td><td><b>가속기 시간당</b></td><td>전용 GPU 위 오픈 모델 상시 운영</td><td>오픈소스 카탈로그 수백 종</td></tr>
+  </tbody>
+</table>
+<div class="tip">
+  <b>핵심</b>
+  Managed Compute는 "토큰을 사는" 모델이 아니라 <b>"GPU를 시간 단위로 빌리는"</b> 모델입니다.
+  따라서 자체 VM 운영과 <b>비용 구조가 직접 비교 가능</b>하며, 트래픽이 많을수록 토큰 과금 대비 유리해집니다.
+</div>
+
+<h3 id="b2">B2. 머신이 아니라 모델을 고른다 — 4-선택 모델</h3>
+<p>VM 기반 운영에서는 GPU 토폴로지, 텐서 병렬, 런타임 플래그, 컨테이너 이미지, 헬스 프로브, 로드밸런싱을 모두 직접 정해야 합니다. Managed Compute에서는 <b>네 가지만</b> 고르면 Foundry가 나머지 서빙 스택을 구성·운영합니다.</p>
+<div class="grid g4">
+  <div class="card"><h4>1 · Model</h4><p>카탈로그 모델과 <b>버전</b>을 선택합니다. 버전이 명시된 레지스트리 자산입니다.</p></div>
+  <div class="card"><h4>2 · Template</h4><p><b>컨텍스트 길이</b>와 서빙 형태를 선택합니다. 런타임·파서·동시성이 이미 튜닝되어 있습니다.</p></div>
+  <div class="card"><h4>3 · Accelerator</h4><p><b>A100 / H100 / MI300X</b> 중 가속기 계열을 선택합니다. VM SKU가 아닙니다.</p></div>
+  <div class="card"><h4>4 · Instances</h4><p>처리량·가용성을 위한 <b>모델 인스턴스(레플리카) 수</b>를 정합니다.</p></div>
+</div>
+<div class="card">
+  <h4>Foundry가 대신 결정하는 것</h4>
+  <div class="flow">
+    <span class="box">GPU 토폴로지</span><span class="box">런타임 + 플래그</span><span class="box">텐서 병렬</span>
+    <span class="box">컨테이너 이미지</span><span class="box">헬스 프로브 + 라우트</span><span class="box">로드 밸런싱</span>
+  </div>
+  <p class="mono" style="margin-top:10px;font-size:13.5px">총 GPU 수 = (템플릿당 GPU 수) × (모델 인스턴스 수)</p>
+</div>
+<div class="note">
+  <b>사고방식의 전환</b>
+  "ND96isr_H100_v5 몇 대가 필요한가?"가 아니라 <b>"H100 몇 개짜리 인스턴스를 몇 개 띄울 것인가?"</b>로 질문이 바뀝니다.
+  8-GPU 노드에 워크로드를 억지로 패킹하거나 유휴 GPU를 떠안을 필요가 없습니다.
+</div>
+
+<h3 id="b3">B3. 책임 분계선</h3>
+<table>
+  <thead><tr><th style="width:50%">Microsoft가 운영</th><th style="width:50%">고객이 결정 · 소유</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>
+        GPU 토폴로지<br>
+        런타임 + 컨테이너 이미지<br>
+        배포 오케스트레이션<br>
+        라우팅 + 엔드포인트 통합<br>
+        <b>런타임 업그레이드 + CVE 패치</b><br>
+        플랫폼 관측(메트릭 파이프라인)
+      </td>
+      <td>
+        모델과 모델 버전<br>
+        워크로드에 맞는 배포 템플릿<br>
+        가속기 계열<br>
+        모델 인스턴스 용량<br>
+        애플리케이션 프롬프트 + 도구<br>
+        평가, 안전성, 워크로드 SLO
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p>자체 GPU 스택 운영 시 백로그에 남는 <b>5가지 프로덕션 책임</b>(VM SKU·쿼터 확보 / Kubernetes / 런타임 이미지 / 라우팅·캐시 / 패치·메트릭·청구)이 플랫폼으로 이관됩니다.</p>
+
+<h3 id="b4">B4. IaaS GPU VM ↔ Managed Compute 매핑</h3>
+<p>기존 VM 기반 구성을 Managed Compute 개념으로 옮길 때 참고할 대응표입니다.</p>
+<table>
+  <thead><tr><th>IaaS VM 방식 (현행)</th><th>Managed Compute (전환 후)</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td>VM SKU 선정 (<code>Standard_ND96isr_H100_v5</code> 등)</td><td><b>Accelerator 계열</b> 선택 (<code>H100_80GB</code>)</td><td>VM 형상 결정 불필요</td></tr>
+    <tr><td>노드 수 / 노드당 GPU 수 산정</td><td><b>모델 인스턴스 수</b></td><td>GPU/인스턴스는 템플릿이 결정</td></tr>
+    <tr><td>AKS 클러스터, 노드풀, GPU Operator</td><td>없음 (플랫폼 관리)</td><td>운영 부담 제거</td></tr>
+    <tr><td>vLLM/SGLang 컨테이너 직접 빌드 · 플래그 튜닝</td><td><b>배포 템플릿</b> (버전 고정된 환경)</td><td>tool/reasoning parser 포함 사전 튜닝</td></tr>
+    <tr><td>Ingress / API GW / 로드밸런서 / 세션 어피니티</td><td>Foundry 라우터 (prefix · session affinity)</td><td>KV 캐시 인지 라우팅 내장</td></tr>
+    <tr><td>Prometheus + Grafana 자체 구축</td><td>Azure Monitor 메트릭 무설정 수집</td><td>TTFT/TBT/TPS 기본 제공</td></tr>
+    <tr><td>베이스 이미지 CVE 대응 · 재배포</td><td>플랫폼이 롤아웃 (엔드포인트 무중단)</td><td>고객 재배포 불필요</td></tr>
+    <tr><td>Azure <b>VM 쿼터</b> (vCPU 기준)</td><td>Foundry <b>가속기 쿼터</b> (별도 풀)</td><td>→ <a href="#b5">B5 참조</a></td></tr>
+    <tr><td>모델 가중치 직접 다운로드 · 스캔 · 검증</td><td>사전 스테이징된 검증 가중치</td><td>HF Hub 아웃바운드 의존 없음</td></tr>
+  </tbody>
+</table>
+<div class="warn">
+  <b>주의 — 1:1 대응이 아닙니다</b>
+  <code>Standard_ND96isr_H100_v5</code> 1대 ≈ H100 8개이지만, Managed Compute는 <b>모델이 실제로 필요한 GPU 수만큼</b> 배정합니다.
+  16K 컨텍스트 중형 모델이 H100 1개면 충분하다면, VM 방식에서 낭비되던 7개 GPU 비용이 사라집니다.
+  <b>전환 효과의 상당 부분이 여기서 발생</b>하므로 현행 GPU 사용률(utilization)을 먼저 측정하세요.
+</div>
+
+<h3 id="b5">B5. 쿼터 구조와 "플랜 B"</h3>
+<p>Managed Compute 쿼터는 <b>Azure VM 쿼터와 완전히 분리된 별도 풀</b>이며, 가속기 계열(A100 / H100 / MI300X) 단위로 추적됩니다.</p>
+<div class="grid g3">
+  <div class="card"><h4>기본 할당</h4><p><b>지원 SKU당 8</b>이 기본값입니다. Foundry 포털의 <a href="https://ai.azure.com/managementCenter/quota" target="_blank" rel="noopener">Quota 화면</a>에서 사용량 확인 및 상향 요청이 가능합니다.</p></div>
+  <div class="card"><h4>분리 원칙</h4><p>NC/ND 계열 <b>VM 쿼터를 확보하지 못한 상황에서도</b> Managed Compute 쿼터는 독립적으로 요청·승인됩니다. 기존 Azure VM 쿼터를 Managed Compute에 <b>전용할 수는 없습니다.</b></p></div>
+  <div class="card"><h4>단위</h4><p><b>가속기 계열 × 리전</b> 단위로 부여됩니다. vCPU·VM 시리즈 조합을 따질 필요가 없습니다.</p></div>
+</div>
+
+<h4>가속기 계열 식별자</h4>
+<p>아래 값은 Foundry 포털 Quota 화면과 쿼터 요청 폼에서 실제로 사용되는 표기입니다.</p>
+<table>
+  <thead><tr><th>계열</th><th>식별자</th><th>메모리</th><th>비고</th></tr></thead>
+  <tbody>
+    <tr><td>NVIDIA A100</td><td><code>A100_80GB</code></td><td>80 GB</td><td>$3.95 / GPU-h</td></tr>
+    <tr><td>NVIDIA H100</td><td><code>H100_80GB</code></td><td>80 GB</td><td>$7.91 / GPU-h</td></tr>
+    <tr><td>NVIDIA H200</td><td><code>H200_141GB</code></td><td>141 GB</td><td>포털·요청 폼에서 선택 가능</td></tr>
+    <tr><td>AMD MI300X</td><td><code>MI300_192GB</code></td><td><b>192 GB</b></td><td>$7.91 / GPU-h — H100과 동일 단가</td></tr>
+  </tbody>
+</table>
+<div class="warn">
+  <b>식별자 표기 주의</b>
+  MI300X는 공식 문서에 <code>MI_300_192GB</code>로 표기된 곳이 있으나, <b>포털과 요청 폼의 실제 값은 <code>MI300_192GB</code></b>입니다.
+  SDK·IaC 작성 시 쿼터 화면에 표시된 값을 기준으로 하고, 배포 실패 시 이 항목을 먼저 확인하세요.
+</div>
+
+<figure>
+  <img src="assets/quota-1-usage.webp" alt="Foundry 포털 Quota 화면 — Managed compute 탭에서 가속기별 총량/사용량/가용량/배포 수 표시" loading="lazy">
+  <figcaption><b>Manage → Quota → Managed compute 탭</b> — 가속기 계열별 <b>Total / Used / Available quota</b>와 해당 가속기를 사용 중인 <b>배포 목록</b>이 함께 표시됩니다. 우측 상단 <b>Request quota</b> 버튼이 상향 요청 진입점입니다. <span class="tag ghost">화면은 상향 승인된 예시 테넌트 — 신규 구독 기본값은 SKU당 8</span></figcaption>
+</figure>
+
+<div class="figrow two">
+  <figure>
+    <img src="assets/quota-2-request.webp" alt="쿼터 요청 폼 1페이지 — 리전, 구독 ID, 사유, 쿼터 유형 선택" loading="lazy">
+    <figcaption><b>요청 폼 1/3</b> — 리전, <b>구독 ID</b>, 사유(Justification)를 입력하고 <b>Quota Type</b>에서 반드시 <b>Managed Compute (GPU Accelerators)</b>를 선택합니다. Model Deployment(PTU/RPM/TPM)나 Fine-tuning을 고르면 다른 팀으로 라우팅됩니다.</figcaption>
+  </figure>
+  <figure>
+    <img src="assets/quota-3-confirm.webp" alt="쿼터 요청 폼 3페이지 — 가속기 타입, 스코프, 총 쿼터 수량, 배포 예정 모델 입력" loading="lazy">
+    <figcaption><b>요청 폼 3/3</b> — <b>Accelerator Type</b>, <b>Quota Scope</b>(현재 Global), <b>Total Quota Required</b>, <b>배포 예정 모델의 Hugging Face ID</b>를 입력하고 제출합니다.</figcaption>
+  </figure>
+</div>
+<div class="warn">
+  <b>요청 폼에서 가장 자주 틀리는 항목</b>
+  <b>Total Quota Required는 "증분"이 아니라 "요청 후의 총량"</b>입니다. 현재 8을 보유하고 24개가 더 필요하다면 <b>24가 아니라 32</b>를 입력해야 합니다.
+  또한 배포 예정 모델의 Hugging Face 모델 ID를 정확히 적어야 용량 산정이 제대로 이뤄집니다.
+</div>
+
+<h4>쿼터 · 용량 요청 경로</h4>
+<table>
+  <thead><tr><th style="width:26%">경로</th><th style="width:38%">URL</th><th>용도</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><b>Foundry 포털 Quota</b></td>
+      <td><a href="https://ai.azure.com/managementCenter/quota" target="_blank" rel="noopener">ai.azure.com/managementCenter/quota</a></td>
+      <td>현재 가속기 계열별 사용량 조회 및 <b>쿼터 상향 요청</b> 제출 — 1차 경로</td>
+    </tr>
+    <tr>
+      <td><b>모델 · 용량 요청 폼</b></td>
+      <td><a href="https://forms.office.com/r/dUR3DLqVUP" target="_blank" rel="noopener">forms.office.com/r/dUR3DLqVUP</a></td>
+      <td>카탈로그에 없는 모델 요청 + <b>예상 규모·리전·가속기 선호</b> 제출. 대규모 용량 사전 협의 시 함께 사용</td>
+    </tr>
+    <tr>
+      <td>쿼터 관리 문서</td>
+      <td><a href="https://learn.microsoft.com/en-us/azure/foundry/how-to/quota" target="_blank" rel="noopener">Manage and increase quotas</a></td>
+      <td>절차·제한·조회 방법 공식 문서</td>
+    </tr>
+    <tr>
+      <td>피드백 포털</td>
+      <td><a href="https://feedbackportal.microsoft.com/" target="_blank" rel="noopener">feedbackportal.microsoft.com</a></td>
+      <td>제품 요구사항·이슈 등록</td>
+    </tr>
+  </tbody>
+</table>
+<div class="tip">
+  <b>플랜 B 시나리오</b>
+  IaaS GPU VM 쿼터 확보가 지연되어 PoC가 막힐 경우, <b>Managed Compute 쿼터로 우회하여 동일 모델을 즉시 배포</b>하고
+  벤치마크·기능 검증을 진행할 수 있습니다. 엔드포인트가 OpenAI 호환이므로 이후 IaaS로 되돌아가더라도 애플리케이션 코드 변경은 최소화됩니다.
+  <b>요청 폼 준비물</b> — 리전, 구독 ID, 사유, 가속기 계열, <b>요청 후 총 쿼터 수량</b>, 배포 예정 모델의 Hugging Face ID.
+</div>
+
+<!-- ============================ PART C ============================ -->
+<h2 id="partC">Part C · How — 전환 실습</h2>
+
+<h3 id="c1">C1. 카탈로그에서 엔드포인트까지 5단계</h3>
+<p>포털, Python SDK, REST 모두 <b>동일한 모델 · 템플릿 · 가속기 · 용량 값</b>을 사용합니다. 일반적인 프로비저닝 시간은 10–15분입니다.</p>
+<ol class="steps">
+  <li><h3>Discover</h3><p>모델 카탈로그에서 <b>Deployment option = Managed compute</b> 로 필터하고, <b>Available in my project</b> 로 프로젝트 가용성을 확인합니다. Collection · modality · task · publisher로 추가 필터링이 가능합니다.</p></li>
+  <li><h3>Select model</h3><p>모델 카드에서 <b>버전이 명시된 레지스트리 자산 ID</b>, 업스트림 <b>라이선스</b>, 지원 태스크, 사용 가능한 배포 옵션을 검토합니다. 라이선스 조건은 그대로 노출되므로 법무 검토에 그대로 사용할 수 있습니다.</p></li>
+  <li><h3>Pick template</h3><p>런타임, <b>컨텍스트 길이</b>, GPU 풋프린트 조합을 선택합니다. 예: 16K 컨텍스트 = A100/H100 1개, 256K 컨텍스트 = A100/H100 2개. 템플릿 내부에는 vLLM 버전, tool/reasoning 파서, 동시성 한도, 프로브, 스코어링 경로가 고정되어 있습니다.</p></li>
+  <li><h3>Set capacity</h3><p>가속기 계열과 <b>모델 인스턴스 수</b>를 지정합니다. 총 GPU 수와 시간당 비용이 여기서 확정됩니다.</p></li>
+  <li><h3>Deploy + score</h3><p>상태가 <b>Succeeded</b>가 되면 Playground 또는 SDK로 즉시 호출합니다.</p></li>
+</ol>
+
+<figure>
+  <img src="assets/deploy-1-catalog.webp" alt="Foundry 포털 모델 카탈로그에서 Managed compute 배포 옵션으로 필터링한 화면" loading="lazy">
+  <figcaption><b>Step 1 · Discover</b> — 카탈로그에서 <b>Deployment option = Managed compute</b>로 필터. Collection·modality·task·publisher로 좁히고 <b>Available in my project</b>로 가용성을 확인합니다.</figcaption>
+</figure>
+
+<figure>
+  <img src="assets/deploy-2-model-card.webp" alt="모델 카드 화면 — 버전이 명시된 모델 ID, 라이선스, 배포 옵션 표시" loading="lazy">
+  <figcaption><b>Step 2 · Select model</b> — 모델 카드에서 버전이 명시된 레지스트리 자산 ID, 업스트림 라이선스, 지원 태스크를 검토합니다. 호환되는 템플릿만 배포 대상으로 노출됩니다.</figcaption>
+</figure>
+
+<figure>
+  <img src="assets/deploy-3-template.webp" alt="배포 템플릿 선택 화면 — 컨텍스트 길이와 GPU 풋프린트 조합 비교" loading="lazy">
+  <figcaption><b>Step 3 · Pick template</b> — 컨텍스트 길이와 GPU 풋프린트 조합을 나란히 비교합니다. 런타임·파서·동시성·프로브는 템플릿에 이미 고정되어 있어 <b>고객이 튜닝할 항목이 아닙니다.</b></figcaption>
+</figure>
+
+<div class="figrow two">
+  <figure>
+    <img src="assets/deploy-4-accelerator.webp" alt="가속기 타입 선택 드롭다운 — A100_80GB, 필요 가속기 수 표시" loading="lazy">
+    <figcaption><b>Step 4 · Accelerator</b> — <code>A100_80GB</code> 같은 <b>가속기 계열</b>을 선택합니다. 선택한 템플릿의 상세(Best for, Max sequence length, Trade-off)와 <b>Total Accelerators needed</b>가 함께 표시됩니다.</figcaption>
+  </figure>
+  <figure>
+    <img src="assets/deploy-5-capacity.webp" alt="모델 인스턴스 수 설정 화면" loading="lazy">
+    <figcaption><b>Step 5 · Capacity</b> — 모델 인스턴스 수를 지정하면 총 GPU 수가 확정됩니다. <span class="mono">총 GPU = 템플릿당 GPU × 인스턴스 수</span>, <span class="mono">시간당 비용 = 총 GPU × 가속기 요율</span>.</figcaption>
+  </figure>
+</div>
+<div class="tip">
+  <b>화면에서 확인할 것</b>
+  Step 4 화면의 <b>Model ID</b>와 <b>Deployment template ID</b>는 그대로 복사해
+  <a href="#c2">C2의 관리 SDK 코드</a>의 <code>MODEL_ID</code> · <code>TEMPLATE_ID</code>에 넣으면 됩니다. 포털과 SDK가 동일한 값을 사용합니다.
+</div>
+
+<h4>배포 템플릿 안에 들어있는 것 (참고)</h4>
+<p>고객은 형태 하나만 고르지만, 버전이 고정된 템플릿은 서빙에 필요한 모든 결정을 담고 있습니다.</p>
+<div class="grid g2">
+  <div class="card"><h4>서빙 계약</h4>
+<pre><span class="cm">// 템플릿 예시 — 커스터머 관련 필드</span>
+{
+  <span class="kw">"name"</span>: "template-h100-256k--...",
+  <span class="kw">"deploymentTemplateType"</span>: "managed",
+  <span class="kw">"environmentId"</span>: ".../environments/hf-vllm-gpu/versions/&lt;v&gt;",
+  <span class="kw">"environmentVariables"</span>: {
+    "AML_VLLM_MAX_MODEL_LEN": "262144",
+    "AML_VLLM_TOOL_CALL_PARSER": "...",
+    "AML_VLLM_ENABLE_AUTO_TOOL_CHOICE": "true",
+    "AML_VLLM_REASONING_PARSER": "..."
+  },
+  <span class="kw">"requestSettings"</span>: {
+    "requestTimeout": "PT1M30S",
+    "maxConcurrentRequestsPerInstance": 128
+  },
+  <span class="kw">"scoringPath"</span>: "/v1/chat/completions",
+  <span class="kw">"scoringPort"</span>: 8000
+}</pre>
+  </div>
+  <div class="card"><h4>헬스 · 하드웨어 계약</h4>
+<pre>{
+  <span class="kw">"livenessProbe"</span>: {
+    "initialDelay": "PT5M", "period": "PT10S",
+    "timeout": "PT10S", "failureThreshold": 30,
+    "path": "/health", "port": 8000
+  },
+  <span class="kw">"readinessProbe"</span>: { <span class="cm">/* 동일 */</span> },
+  <span class="kw">"modelMountPath"</span>: "/var/azureml-app",
+  <span class="kw">"allowedInstanceType"</span>: [
+    "Standard_NC80adis_H100_v5",
+    "Standard_ND96isr_H100_v5"
+  ],
+  <span class="kw">"acceleratorMaps"</span>: [{
+    "acceleratorType": "H100_80GB",
+    "numberOfAcceleratorsPerModelInstance": 2
+  }]
+}</pre>
+  </div>
+</div>
+<p><b>읽는 법</b> — <code>environmentId</code>가 런타임 이미지 버전을 고정하고, 환경 변수가 컨텍스트 길이와 파서를 결정하며, <code>acceleratorMaps</code>가 <b>과금 단위</b>(인스턴스당 GPU 수)를 정의합니다. 5분 워밍업 프로브는 롤아웃 판정을 보호합니다.</p>
+
+<h3 id="c2">C2. 코드 마이그레이션 — 바꾸는 것은 두 줄</h3>
+<p>자체 vLLM OpenAI 서버를 쓰고 있었다면, 애플리케이션 변경은 <b>base URL과 인증</b> 뿐입니다.</p>
+
+<h4>Before — 자체 vLLM 엔드포인트</h4>
+<pre>from openai import OpenAI
+
+client = OpenAI(
+    base_url=<span class="kw">"http://vllm-svc.internal:8000/v1"</span>,
+    api_key=<span class="kw">"EMPTY"</span>,
+)
+
+resp = client.chat.completions.create(
+    model=<span class="kw">"/models/my-model"</span>,   <span class="cm"># 로컬 마운트 경로</span>
+    messages=[{"role": "user", "content": "..."}],
+)</pre>
+
+<h4>After — Foundry 통합 엔드포인트</h4>
+<pre>from azure.identity import DefaultAzureCredential, get_bearer_token_provider
+from openai import OpenAI
+
+token_provider = get_bearer_token_provider(
+    DefaultAzureCredential(), <span class="kw">"https://ai.azure.com/.default"</span>
+)
+
+client = OpenAI(
+    base_url=f<span class="kw">"https://{ACCOUNT}.services.ai.azure.com/openai/v1"</span>,
+    api_key=token_provider,
+)
+
+resp = client.chat.completions.create(
+    model=<span class="kw">"gemma-4-31b"</span>,        <span class="cm"># ← 배포 이름 (카탈로그 모델 ID 아님)</span>
+    messages=[{"role": "user", "content": "..."}],
+)
+print(resp.choices[0].message.content)</pre>
+<div class="warn">
+  <b>가장 흔한 실수</b>
+  <code>model=</code> 필드에 <b>카탈로그 모델 ID가 아니라 배포 이름(deployment name)</b>을 넣어야 합니다.
+  또한 OpenAI 호환 경로가 아닌 커스텀 라우트를 가진 모델은 <code>/managed-deployments/&lt;deployment-name&gt;/</code> 경로를 사용합니다.
+</div>
+
+<h4>배포 자동화 — 관리 SDK (IaC 대체)</h4>
+<pre>from azure.identity import DefaultAzureCredential
+from azure.mgmt.cognitiveservices import CognitiveServicesManagementClient
+
+client = CognitiveServicesManagementClient(
+    DefaultAzureCredential(), SUBSCRIPTION_ID)
+
+poller = client.managed_compute_deployments.begin_create_or_update(
+    resource_group_name=RESOURCE_GROUP,
+    account_name=ACCOUNT_NAME,
+    deployment_name=<span class="kw">"gemma-4-31b"</span>,
+    resource={
+        "sku": {"name": "GlobalManagedCompute", <span class="kw">"capacity"</span>: 1},   <span class="cm"># 모델 인스턴스 수</span>
+        "properties": {
+            "model": MODEL_ID,                    <span class="cm"># 버전 포함 카탈로그 자산</span>
+            "deploymentTemplate": TEMPLATE_ID,    <span class="cm"># 런타임·컨텍스트·GPU 풋프린트</span>
+            <span class="kw">"acceleratorType"</span>: "H100_80GB",     <span class="cm"># VM SKU 아님</span>
+        },
+    },
+)
+deployment = poller.result()</pre>
+<p>기존 Terraform/Bicep의 AKS 노드풀 + Helm 차트 정의가 이 한 블록으로 대체됩니다. <code>capacity</code>만 바꾸면 스케일아웃입니다.</p>
+
+<h3 id="c3">C3. 네트워크 · 인증 · 권한</h3>
+<div class="grid g3">
+  <div class="card"><h4>프라이빗 네트워킹</h4><p>Private Endpoint가 <b>Foundry 프로젝트 전체</b>에 적용됩니다. Frontier/PTU, Managed Compute, Agents + Tools가 동일한 프라이빗 경계 안에 들어옵니다.</p></div>
+  <div class="card"><h4>인증</h4><p><b>Microsoft Entra ID 권장</b>. 계정 키도 지원하지만 키 로테이션 부담이 있으므로 관리 ID 기반을 우선하세요.</p></div>
+  <div class="card"><h4>데이터 레지던시</h4><p>현재는 <b>Global Managed Compute</b>(리전 귀속 정보는 고객에게 노출). <b>Data Zone</b>은 로드맵. <span class="tag roadmap">Roadmap</span></p></div>
+</div>
+<h4>작업별 최소 권한</h4>
+<table>
+  <thead><tr><th>작업</th><th>최소 롤 / 자격 증명</th></tr></thead>
+  <tbody>
+    <tr><td>배포 생성 · 수정 · 삭제</td><td>Cognitive Services Contributor 또는 Foundry Owner</td></tr>
+    <tr><td>배포 조회 · 목록</td><td>Cognitive Services User, Foundry User, 또는 Project Manager</td></tr>
+    <tr><td>Entra ID로 호출</td><td>Foundry 계정에 대한 Foundry User</td></tr>
+    <tr><td>계정 키로 호출</td><td>계정 키 (키 조회에는 읽기 권한 필요)</td></tr>
+  </tbody>
+</table>
+<h4>엔드포인트 경로</h4>
+<table>
+  <thead><tr><th>용도</th><th>Base URL</th></tr></thead>
+  <tbody>
+    <tr><td>OpenAI 호환 (chat, embeddings 등)</td><td><code>https://&lt;account&gt;.services.ai.azure.com/openai/v1/</code></td></tr>
+    <tr><td>모든 Managed Compute 배포 (커스텀 라우트 포함)</td><td><code>https://&lt;account&gt;.services.ai.azure.com/managed-deployments/&lt;deployment-name&gt;/</code></td></tr>
+  </tbody>
+</table>
+
+<h3 id="c4">C4. 관측 — 첫 요청부터 무설정</h3>
+<p>Prometheus·Grafana를 직접 구축하지 않아도 Azure Monitor에 메트릭이 자동 수집됩니다. <b>1분 단위</b>로 조회 가능하며 deployment, model, model version, region, status, stream type, API 기준으로 분할할 수 있습니다.</p>
+<table>
+  <thead><tr><th style="width:16%">범주</th><th style="width:30%">질문</th><th>메트릭</th></tr></thead>
+  <tbody>
+    <tr><td><b>HTTP</b></td><td>요청이 모델에 도달하고 성공하는가?</td><td><code>ModelRequests</code>, <code>ModelAvailabilityRate</code></td></tr>
+    <tr><td><b>Latency</b></td><td>사용자가 얼마나 빨리 토큰을 받는가?</td><td><code>TimeToResponse</code>, <code>NormalizedTimeToFirstToken</code>, <code>TimeToLastByte</code>, <code>NormalizedTimeBetweenTokens</code>, <code>TokensPerSecond</code></td></tr>
+    <tr><td><b>Usage</b></td><td>각 배포가 얼마나 일하고 있는가?</td><td><code>InputTokens</code>, <code>OutputTokens</code>, <code>TotalTokens</code>, <code>cacheReadInputTokens</code>, <code>ModelActiveTokens</code>, <code>ContextTokensCacheMatchRate</code></td></tr>
+  </tbody>
+</table>
+<div class="tip">
+  <b>비용 최적화에 직결되는 메트릭</b>
+  <code>ContextTokensCacheMatchRate</code> 와 <code>cacheReadInputTokens</code> 는 프리픽스 캐시 효율을 보여줍니다.
+  이 값이 낮다면 프롬프트 구조(공통 프리픽스 배치)를 조정해 동일 GPU에서 처리량을 끌어올릴 여지가 있습니다.
+  <code>TokensPerSecond</code> ÷ 시간당 단가 = <b>$/1M 토큰</b> 계산의 분모가 됩니다(→ <a href="#d3">D3</a>).
+</div>
+
+<figure>
+  <img src="assets/monitor-1-http.webp" alt="Foundry 포털 배포 Monitor 탭 — 총 토큰, 입출력 토큰, 모델 요청 수, 가용률 차트" loading="lazy">
+  <figcaption><b>배포별 Monitor 탭</b> — 배포를 열면 별도 설정 없이 총 토큰, 입력 대 출력 토큰 추이, 모델 요청 수, <b>Model availability rate</b>가 바로 표시됩니다. 자체 스택에서 Prometheus·Grafana로 구축하던 화면입니다.</figcaption>
+</figure>
+
+<figure>
+  <img src="assets/monitor-2-latency.webp" alt="Foundry 포털 지연 메트릭 화면" loading="lazy">
+  <figcaption><b>지연 메트릭</b> — TTFT, 토큰 간 간격, end-to-end 백분위수를 확인합니다. <a href="#a2">Part A 벤치마크</a>의 TTFT/TBT 수치를 이 화면에서 그대로 수집할 수 있습니다.</figcaption>
+</figure>
+
+<div class="figrow two">
+  <figure>
+    <img src="assets/monitor-3-usage.webp" alt="Azure Monitor 메트릭 — ModelName으로 분할한 평균 Tokens Per Second" loading="lazy">
+    <figcaption><b>Azure Monitor · TokensPerSecond</b> — <code>ModelName</code>으로 split하면 배포된 모델별 평균 처리량이 비교됩니다. <b>$/1M 토큰 계산의 분모</b>가 바로 이 값입니다.</figcaption>
+  </figure>
+  <figure>
+    <img src="assets/monitor-4-detail.webp" alt="Azure Monitor 메트릭 — ModelName으로 분할한 Total Tokens 합계 시계열" loading="lazy">
+    <figcaption><b>Azure Monitor · TotalTokens</b> — 모델별 토큰 소비량 시계열. 1분 그레인으로 조회되며 배포·모델·버전·리전·상태·스트림 타입별 분할이 가능합니다.</figcaption>
+  </figure>
+</div>
+<div class="note">
+  <b>두 화면의 용도 구분</b>
+  <b>Foundry 포털 Monitor 탭</b>은 단일 배포의 건강 상태를 빠르게 보는 용도,
+  <b>Azure Monitor Metrics</b>는 여러 배포를 가로질러 비교하거나 알림·대시보드·로그 연동을 붙이는 용도입니다.
+  벤치마크 데이터 수집은 후자를 사용하세요.
+</div>
+
+<h3 id="c5">C5. 스케일아웃과 캐시 인지 라우팅</h3>
+<p>자체 스택에서는 게이트웨이·라우터·세션 어피니티를 직접 구현해야 했지만, Foundry 라우터가 <b>미처리 프롬프트 토큰 부하를 균형화하면서 동시에 캐시 유효성과 세션 지역성을 보존</b>합니다.</p>
+<div class="grid g4">
+  <div class="card"><h4>프롬프트 캐시</h4><p>반복되는 프리픽스에 대해 KV 상태를 재사용합니다.</p></div>
+  <div class="card"><h4>프리픽스 어피니티</h4><p>공유 프롬프트를 <b>워밍된 레플리카</b>로 라우팅합니다.</p></div>
+  <div class="card"><h4>세션 어피니티</h4><p>부하가 허용하는 범위에서 <b>연관된 턴</b>을 같은 인스턴스에 유지합니다.</p></div>
+  <div class="card"><h4>로드 인지 스필오버</h4><p>선호 레플리카가 바쁠 때 <b>소프트 로드 한계</b>를 넘겨 균형을 보호합니다.</p></div>
+</div>
+<p>스케일 조작은 <b>모델 인스턴스 수 변경</b> 하나뿐입니다. 노드 추가, 스케줄러 튜닝, 라우터 재설정이 필요 없습니다.</p>
+
+<h3 id="c6">C6. 전환 체크리스트</h3>
+<table>
+  <thead><tr><th style="width:6%">#</th><th style="width:28%">단계</th><th>확인 항목</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>현행 프로파일 수집</td><td>사용 모델·버전, 입력/출력 토큰 분포, 피크 동시성, 현재 GPU 대수 및 <b>실사용률</b>, 월 GPU 비용</td></tr>
+    <tr><td>2</td><td>카탈로그 매칭</td><td>동일 모델이 카탈로그에 있는지, 없으면 모델 요청 폼 제출</td></tr>
+    <tr><td>3</td><td>템플릿 선정</td><td>실제 필요한 컨텍스트 길이 확인(과다 선택 = 2배 GPU = 2배 비용)</td></tr>
+    <tr><td>4</td><td>쿼터 확인</td><td>가속기 계열별 잔여 쿼터, 필요 시 상향 요청 (기본 8/SKU)</td></tr>
+    <tr><td>5</td><td>PoC 배포</td><td>인스턴스 1개로 배포 → Playground 검증 → 벤치마크 하네스 연결</td></tr>
+    <tr><td>6</td><td>코드 전환</td><td><code>base_url</code>, 인증, <code>model=</code>(배포 이름) 3곳 변경 후 회귀 테스트</td></tr>
+    <tr><td>7</td><td>품질 회귀 검증</td><td>tool calling / structured output / reasoning 파서 동작이 기존과 일치하는지 확인</td></tr>
+    <tr><td>8</td><td>네트워크·권한</td><td>Private Endpoint 구성, Entra ID 롤 부여, 계정 키 사용 제거</td></tr>
+    <tr><td>9</td><td>부하 시험</td><td>목표 동시성에서 TTFT/TBT p95 확인 → 인스턴스 수 확정</td></tr>
+    <tr><td>10</td><td>비용 확정</td><td><a href="#d1">D1 공식</a>으로 월 비용 산출 → 현행 대비 비교</td></tr>
+    <tr><td>11</td><td>컷오버</td><td>트래픽 분할(카나리) → 메트릭 비교 → 전량 전환 → 기존 클러스터 정리</td></tr>
+  </tbody>
+</table>
+
+<!-- ============================ PART D ============================ -->
+<h2 id="partD">Part D · Economics &amp; Decision</h2>
+
+<h3 id="d1">D1. 비용 공식과 단가</h3>
+<div class="card">
+  <p class="mono" style="font-size:16px;font-weight:700;margin:4px 0 12px">
+    비용 = (인스턴스당 가속기 수) × (모델 인스턴스 수) × (시간) × (시간당 단가)
+  </p>
+  <p style="margin:0;color:var(--cp-text-muted);font-size:14px">Managed Compute는 <b>모델 인스턴스 단위</b>로 청구됩니다. 토큰 수와 무관하게 GPU 점유 시간에 비례합니다.</p>
+</div>
+<table>
+  <thead><tr><th>가속기</th><th>메모리</th><th>SKU</th><th style="text-align:right">시간당 단가</th></tr></thead>
+  <tbody>
+    <tr><td><b>A100</b></td><td>80 GB</td><td>Global Managed Compute</td><td style="text-align:right"><b>$3.95</b> / accelerator-hour</td></tr>
+    <tr><td><b>H100</b></td><td>80 GB</td><td>Global Managed Compute</td><td style="text-align:right"><b>$7.91</b> / accelerator-hour</td></tr>
+    <tr><td><b>MI300X</b></td><td><b>192 GB</b></td><td>Global Managed Compute</td><td style="text-align:right"><b>$7.91</b> / accelerator-hour</td></tr>
+  </tbody>
+</table>
+<div class="tip">
+  <b>MI300X 선택 논리</b>
+  MI300X와 H100은 <b>시간당 단가가 동일</b>하지만 MI300X는 GPU당 <b>192GB</b>(H100 80GB의 2.4배) 메모리를 제공합니다.
+  따라서 <b>모델 가중치 + KV 캐시가 메모리에 의해 제약되는 워크로드</b>(대형 모델, 긴 컨텍스트, 높은 동시성)에서는
+  더 적은 GPU 수로 동일 워크로드를 수용하거나, 같은 GPU 수로 더 높은 동시성을 낼 수 있습니다.
+  이 경우 <b>$/토큰이 직접적으로 개선</b>됩니다.
+</div>
+<div class="note">
+  <b>추가 할인</b>
+  Azure Consumption Discount(ACD)가 적용됩니다. Commerce Reservations(예약 할인)은 로드맵입니다. <span class="tag roadmap">Roadmap</span>
+  위 단가는 2026-08 리테일 기준이며, 최신 값은 Azure Retail Prices API로 조회하세요(→ <a href="#refs">참고 문서</a>).
+</div>
+
+<h4>템플릿 형태별 시간당 비용 예시</h4>
+<p>동일 모델이라도 <b>컨텍스트 길이 선택이 비용을 2배로 만듭니다.</b> 실제 필요한 길이를 먼저 측정하세요.</p>
+<table>
+  <thead><tr><th>컨텍스트</th><th>가속기 구성</th><th style="text-align:right">시간당</th><th style="text-align:right">월(730h) · 인스턴스 1개</th></tr></thead>
+  <tbody>
+    <tr><td>16K</td><td>1 × A100</td><td style="text-align:right">$3.95</td><td style="text-align:right">$2,884</td></tr>
+    <tr><td>16K</td><td>1 × H100</td><td style="text-align:right">$7.91</td><td style="text-align:right">$5,774</td></tr>
+    <tr><td>256K</td><td>2 × A100</td><td style="text-align:right">$7.90</td><td style="text-align:right">$5,767</td></tr>
+    <tr><td>256K</td><td>2 × H100</td><td style="text-align:right">$15.82</td><td style="text-align:right">$11,549</td></tr>
+  </tbody>
+</table>
+
+<h3 id="d2">D2. 시나리오 시뮬레이션 템플릿</h3>
+<p>아래 표에 벤치마크 실측치를 대입해 고객별 비교를 완성합니다. <b>수치는 자리표시자</b>이며 실측 결과로 대체해야 합니다.</p>
+<table>
+  <thead><tr>
+    <th>항목</th><th>현행 IaaS VM</th><th>Managed Compute (H100)</th><th>Managed Compute (MI300X)</th>
+  </tr></thead>
+  <tbody>
+    <tr><td>GPU 수 (실제 필요)</td><td>노드 단위 올림 → 유휴 발생</td><td>템플릿 실사용분</td><td>메모리 여유로 축소 가능</td></tr>
+    <tr><td>월 인프라 비용</td><td>VM 시간 × 단가 (유휴 포함)</td><td>가속기-시간 × $7.91</td><td>가속기-시간 × $7.91</td></tr>
+    <tr><td>운영 인건비</td><td>K8s·런타임·패치·라우터 (FTE)</td><td>—</td><td>—</td></tr>
+    <tr><td>Day-0 모델 도입</td><td>수일~수주 (포팅 프로젝트)</td><td>카탈로그 즉시</td><td>카탈로그 즉시</td></tr>
+    <tr><td>확장 리드타임</td><td>쿼터 + 노드 증설</td><td>인스턴스 수 변경</td><td>인스턴스 수 변경</td></tr>
+    <tr><td><b>$ / 1M output tokens</b></td><td>측정 필요</td><td>측정 필요</td><td>측정 필요</td></tr>
+  </tbody>
+</table>
+<div class="warn">
+  <b>비교 시 반드시 포함할 것</b>
+  온프렘/자체 운영과 비교할 때 GPU 하드웨어 가격만 비교하면 실제 비용의 절반만 본 것입니다.  <b>유휴 GPU 비용, 운영 FTE, 패치·CVE 대응 공수, 라우터·관측 구축 비용, 확장 리드타임의 기회비용</b>을 함께 계산하세요.
+</div>
+
+<h3 id="d3">D3. 킬러 지표 — $ / 1M 토큰 산출법</h3>
+<div class="kpi">
+  <p class="mono" style="font-size:15px;font-weight:700;margin:2px 0">
+    $ / 1M output tokens = (시간당 단가 × 인스턴스당 GPU 수) ÷ (실측 output TPS × 3600) × 1,000,000
+  </p>
+</div>
+<h4>계산 예시</h4>
+<p>H100 1개 인스턴스($7.91/h)에서 목표 동시성 기준 실측 output 처리량이 <b>2,000 tok/s</b>라면:</p>
+<pre>시간당 생산 토큰 = 2,000 × 3,600 = 7,200,000 tokens
+$ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
+<p>동일 워크로드에서 MI300X가 메모리 여유로 <b>2,800 tok/s</b>를 낸다면 $7.91 ÷ 10.08 ≈ <b>$0.78</b> 로 <b>약 29% 개선</b>됩니다. 단가가 같으므로 <b>처리량 우위가 그대로 비용 우위</b>가 됩니다.</p>
+<div class="note">
+  <b>측정 시 주의</b>
+  <ul style="margin:6px 0 0">
+    <li><b>SLO를 고정한 상태의 처리량</b>을 쓰세요. TTFT p95 &lt; 목표치를 만족하는 최대 동시성에서의 TPS가 유효한 값입니다. SLO 없이 뽑은 최대 처리량은 실서비스에서 재현되지 않습니다.</li>
+    <li>입력/출력 토큰 비율을 실제 트래픽과 맞추세요. 프리필 비중이 높은 RAG와 디코드 비중이 높은 챗은 결과가 크게 다릅니다.</li>
+    <li>멀티턴 시나리오에서는 <code>ContextTokensCacheMatchRate</code>가 높아지므로 <b>캐시 효과를 포함한 유효 처리량</b>으로 재계산하세요.</li>
+  </ul>
+</div>
+
+<h3 id="d4">D4. 현재 제약과 로드맵</h3>
+<table>
+  <thead><tr><th style="width:14%">시점</th><th>내용</th></tr></thead>
+  <tbody>
+    <tr><td><span class="tag ok">Now</span></td><td>베이스 카탈로그 모델 · 프라이빗 네트워킹 · 캐싱 + 어피니티 라우팅 · 기본 쿼터 8/SKU · Global Managed Compute</td></tr>
+    <tr><td><span class="tag roadmap">Next</span></td><td>Data Zone Managed Compute · Capacity Reservations</td></tr>
+    <tr><td><span class="tag roadmap">Ignite 2026</span></td><td>GA 예정 (Ignite 2026 이전 목표)</td></tr>
+    <tr><td><span class="tag roadmap">Expand</span></td><td>Full-weight BYOW(자체 가중치) · LoRA 어댑터 · Commerce Reservations</td></tr>
+  </tbody>
+</table>
+<div class="warn">
+  <b>현재 제약 사항 — 사전 고지 필요</b>
+  <ul style="margin:6px 0 0">
+    <li><b>Public Preview</b> — SLA가 제공되지 않으며 프로덕션 워크로드에는 아직 권장되지 않습니다. 고객 제안 시 반드시 명시하세요.</li>
+    <li><b>콘텐츠 필터링 미적용</b> — Azure AI Content Safety 필터가 Managed Compute 데이터 경로에 포함되어 있지 않습니다. 요청/응답 필터링이 필요하면 애플리케이션에서 Content Safety API를 직접 호출해야 합니다.</li>
+    <li><b>커스텀 가중치(BYOW)는 아직 미지원</b> — 파인튜닝 모델을 서빙해야 한다면 로드맵 시점까지 IaaS 병행이 필요합니다.</li>
+    <li><b>데이터 레지던시는 Global</b> — 처리 위치를 데이터 존 내로 한정해야 하는 요건이 있다면 Data Zone GA를 기다려야 합니다.</li>
+    <li><b>기본 쿼터 8/SKU</b> — 대규모 배포는 <a href="#b5">사전 쿼터 상향 요청</a>이 필수입니다.</li>
+    <li>가격·예약 용량·약정 할인 정책은 프리뷰 기간 중 변동 중입니다. 로드맵 계획과 시점도 변경될 수 있습니다.</li>
+  </ul>
+</div>
+
+<h4>참고 사례</h4>
+<div class="card">
+  <p style="margin:0 0 6px"><span class="eyebrow">Customer proof</span></p>
+  <div class="grid g3" style="margin:10px 0">
+    <div class="stat"><div class="n">~1T</div><div class="l">OTel2.0용 처리 토큰</div></div>
+    <div class="stat"><div class="n">~530</div><div class="l">Managed Compute를 통한 GPU</div></div>
+    <div class="stat"><div class="n">430</div><div class="l">AMD Instinct MI300X GPU</div></div>
+  </div>
+  <p style="margin:6px 0 0;font-size:14px">AT&amp;T는 Managed Compute 위에서 Phi-4로 OTel2.0 학습 데이터를 생성해 프론티어 모델 대비 <b>수천만 달러 규모의 비용을 절감</b>했습니다. MI300X가 전체 GPU의 다수를 차지합니다.</p>
+</div>
+
+<!-- ============================ REFERENCES ============================ -->
+<h2 id="refs">참고 문서</h2>
+<p class="lede" style="font-size:15px;margin-top:0">2026-08-25 기준 접근 가능한 링크입니다. 제품 변경에 따라 URL이 이동할 수 있습니다.</p>
+
+<h3>핵심 문서 5선</h3>
+<table>
+  <thead><tr><th style="width:34%">문서</th><th>설명</th></tr></thead>
+  <tbody>
+    <tr><td><a href="https://learn.microsoft.com/en-us/azure/foundry/concepts/managed-compute-overview" target="_blank" rel="noopener">Managed compute in Microsoft Foundry</a></td><td><b>가장 중요한 문서.</b> 모델 인스턴스, 배포 템플릿, 가속기 계열, 런타임, 엔드포인트 라우트, 스케일링, 과금·쿼터, RBAC, 제약사항 총정리</td></tr>
+    <tr><td><a href="https://learn.microsoft.com/en-us/azure/foundry/how-to/deploy-models-managed?tabs=openai-entra&amp;pivots=python-sdk" target="_blank" rel="noopener">Deploy open-source models with managed compute</a></td><td>포털·Python SDK 배포, 추론, 스케일링, 모니터링, 트러블슈팅 — <b>Part C의 1차 레퍼런스</b></td></tr>
+    <tr><td><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/model-catalog-overview" target="_blank" rel="noopener">Model catalog overview</a></td><td>카탈로그 구조, 필터, 모델 카드, 라이선스 — <b>C1 Step 1–2</b></td></tr>
+    <tr><td><a href="https://learn.microsoft.com/en-us/azure/foundry/how-to/quota" target="_blank" rel="noopener">Manage and increase quotas</a></td><td>쿼터 조회·상향 요청 절차 — <b>B5 플랜 B</b></td></tr>
+    <tr><td><a href="https://learn.microsoft.com/en-us/rest/api/cost-management/retail-prices/azure-retail-prices" target="_blank" rel="noopener">Azure Retail Prices API</a></td><td>최신 가속기-시간 단가 조회 — <b>D1 단가 갱신</b></td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <b>모델 요청 프로세스</b>
+  ① <b>REQUEST</b> — 모델 ID·버전, 유스케이스·모달리티, 예상 규모·리전, 가속기 선호 제출 →
+  ② <b>CURATE</b> — 고객 수요, 라이선스·보안, 아키텍처 지원, 템플릿·가속기 옵션 검토 →
+  ③ <b>PUBLISH</b> — 검증된 가중치, 서명된 런타임 이미지, 호환 템플릿, 모델 카드·라이선스 메타데이터 게시
+</div>
+
+<footer>
+  <p><b>Foundry Managed Compute 전환 가이드</b> — Part A / B / C / D · v2.0 · 최종 갱신 2026-08-25</p>
+  <p>Foundry Managed Compute LevelUp 자료(2026-08-24) 및 Microsoft Learn 공식 문서 기반. Managed Compute는 <b>Public Preview</b> 상태이며 가격·쿼터·로드맵 정보는 변경될 수 있습니다. 고객 제시 전 최신 공식 문서와 Azure Pricing으로 재확인하시기 바랍니다.</p>
+</footer>
+</main>
+</div>
+
+<div class="wrap lang-en">
+<aside>
+  <div class="brand">Microsoft Foundry</div>
+  <div class="brand-sub">Managed Compute<br>Migration Guide</div>
+  <nav class="toc">
+    <a class="lvl1" href="#en-partA">Part A · Benchmark</a>
+    <a class="lvl2" href="#en-a1">A1. Test design</a>
+    <a class="lvl2" href="#en-a2">A2. Throughput · Latency</a>
+    <a class="lvl2" href="#en-a3">A3. Cost-efficiency results</a>
+    <a class="lvl2" href="#en-a4">A4. Recommendations by workload</a>
+    <a class="lvl1" href="#en-partB">Part B · What</a>
+    <a class="lvl2" href="#en-b1">B1. Three deployment types</a>
+    <a class="lvl2" href="#en-b2">B2. The 4-choice model</a>
+    <a class="lvl2" href="#en-b3">B3. Responsibility split</a>
+    <a class="lvl2" href="#en-b4">B4. IaaS VM ↔ MC mapping</a>
+    <a class="lvl2" href="#en-b5">B5. Quota structure and Plan B</a>
+    <a class="lvl1" href="#en-partC">Part C · How</a>
+    <a class="lvl2" href="#en-c1">C1. 5-step deployment</a>
+    <a class="lvl2" href="#en-c2">C2. Code migration</a>
+    <a class="lvl2" href="#en-c3">C3. Network · Auth · Permissions</a>
+    <a class="lvl2" href="#en-c4">C4. Observability</a>
+    <a class="lvl2" href="#en-c5">C5. Scale-out · Cache</a>
+    <a class="lvl2" href="#en-c6">C6. Migration checklist</a>
+    <a class="lvl1" href="#en-partD">Part D · Economics</a>
+    <a class="lvl2" href="#en-d1">D1. Cost formula</a>
+    <a class="lvl2" href="#en-d2">D2. Scenario simulation</a>
+    <a class="lvl2" href="#en-d3">D3. How to calculate $/1M tokens</a>
+    <a class="lvl2" href="#en-d4">D4. Constraints · Roadmap</a>
+    <a class="lvl1" href="#en-refs">References</a>
+  </nav>
+</aside>
+
+<main>
+  <div class="toptag">
+    <span class="eyebrow">Foundry Managed Compute</span>
+    <span class="tag ghost">v2.0 · 2026-08-25</span>
+    <span class="tag roadmap">Public Preview</span>
+  </div>
+  <h1>From IaaS GPU VMs to Foundry Managed Compute</h1>
+  <p class="lede">
+    A practical guide for moving a self-operated GPU VM-based inference stack to Foundry Managed Compute.
+    It is organized as benchmark results (Part A) → concepts (Part B) → migration hands-on (Part C) → cost and decision-making (Part D).
+  </p>
+
+  <div class="grid g4">
+    <div class="card stat"><div class="n">4</div><div class="l">Just make selections to deploy<br>Model · Template · Accelerator · Instances</div></div>
+    <div class="card stat"><div class="n">10–15 min</div><div class="l">From catalog to endpoint<br>Typical provisioning time</div></div>
+    <div class="card stat"><div class="n">1</div><div class="l">Unified Foundry endpoint<br>Shared across Standard · Provisioned · MC</div></div>
+    <div class="card stat"><div class="n">0</div><div class="l">Clusters to operate yourself<br>Runtime · patching · router handed off</div></div>
+  </div>
+
+  <div class="note">
+    <b>How to read this document</b>
+    Decision-makers should start with <b>A3 → B1 → B3 → D1</b>, platform engineers with <b>B4 → B5 → C2 → C6</b>, and performance-validation owners with <b>A1 → A2 → C4 → D3</b>.
+    Pricing, quota, and roadmap figures are <span class="tag ghost">as of 2026-08</span> and must be re-verified against Azure Pricing before any actual contract.
+  </div>
+
+<!-- ============================ PART A ============================ -->
+<h2 id="en-partA">Part A · Benchmark performance test results</h2>
+<div class="warn">
+  <b>Placeholder — awaiting measurement</b>
+  Every figure in this part is a <b>placeholder to be replaced with measured results</b>. Once you fill in the <span class="tbd">TBD</span> cells in the tables,
+  the <a href="#en-d2">D2 scenario simulation</a> and <a href="#en-d3">D3 $/1M token</a> calculations complete automatically.
+  <b>Do not distribute to customers until finalized.</b>
+</div>
+
+<h3 id="en-a1">A1. Test design</h3>
+<h4>Comparison groups</h4>
+<table>
+  <thead><tr><th style="width:8%">ID</th><th style="width:26%">Configuration</th><th>Detailed spec</th><th style="width:16%">Hourly rate</th></tr></thead>
+  <tbody>
+    <tr><td><b>MC-MI</b></td><td>MI300X on Managed Compute</td><td>MI300X 192GB × <span class="tbd">TBD</span> / instance</td><td>$7.91 / GPU-h</td></tr>
+    <tr><td><b>MC-H</b></td><td>H100 on Managed Compute</td><td>H100 80GB × <span class="tbd">TBD</span> / instance</td><td>$7.91 / GPU-h</td></tr>
+    <tr><td><b>MC-A</b></td><td>A100 on Managed Compute</td><td>A100 80GB × <span class="tbd">TBD</span> / instance</td><td>$3.95 / GPU-h</td></tr>
+    <tr><td><b>MC-H2</b> <span class="tag ghost">optional</span></td><td>H200 on Managed Compute</td><td>H200 141GB × <span class="tbd">TBD</span> / instance</td><td class="tbd">TBD</td></tr>
+    <tr><td><b>IAAS</b></td><td>Self-hosted vLLM on IaaS VM</td><td><span class="tbd">VM SKU TBD</span> · self-operated</td><td><span class="tbd">TBD</span></td></tr>
+    <tr><td><b>RTX</b></td><td>RTX Pro (on-prem/quote)</td><td><span class="tbd">Model · card count TBD</span></td><td><span class="tbd">CAPEX conversion TBD</span></td></tr>
+  </tbody>
+</table>
+
+<h4>Test matrix</h4>
+<table>
+  <thead><tr><th style="width:16%">Axis</th><th>Setting</th></tr></thead>
+  <tbody>
+    <tr><td><b>Model</b></td><td>Mid-size (20–30B class) <span class="tbd">model name TBD</span> · Large/MoE <span class="tbd">model name TBD</span> — must include a size that reveals the MI300X 192GB advantage</td></tr>
+    <tr><td><b>Context</b></td><td>Both short templates (16K class) and long templates (128K–256K class)</td></tr>
+    <tr><td><b>Load pattern</b></td><td>① Short prompts · high concurrency (chat) ② Long prompts (RAG · agents) ③ Multi-turn sessions (cache hits) ④ Batch · offline generation</td></tr>
+    <tr><td><b>Concurrency</b></td><td>1 / 8 / 32 / 64 / 128 / <span class="tbd">saturation point TBD</span></td></tr>
+    <tr><td><b>I/O token ratio</b></td><td>Reflect real traffic — <span class="tbd">input:output = TBD</span></td></tr>
+    <tr><td><b>Harness</b></td><td>vLLM <code>benchmark_serving</code> (identical prompt set · fixed seed)</td></tr>
+    <tr><td><b>SLO targets</b></td><td>TTFT p95 &lt; <span class="tbd">TBD ms</span>, TBT p95 &lt; <span class="tbd">TBD ms</span></td></tr>
+    <tr><td><b>Measurement conditions</b></td><td>Warm up for <span class="tbd">TBD</span> min, then measure steady state for <span class="tbd">TBD</span> min; median of 3 runs</td></tr>
+  </tbody>
+</table>
+<div class="note">
+  <b>Conditions that determine the credibility of the results</b>
+  Only <b>throughput at a fixed SLO</b> is valid. Maximum throughput measured without an SLO does not reproduce in production and will be challenged during customer validation.
+  State explicitly that the same prompt set, token distribution, and seed were applied across all comparison groups.
+</div>
+
+<h3 id="en-a2">A2. Throughput · Latency results</h3>
+<h4>Scenario 1 — Short prompts / high concurrency (chat)</h4>
+<table>
+  <thead><tr>
+    <th>Configuration</th><th>TTFT p50</th><th>TTFT p95</th><th>TBT p95</th><th>Output TPS</th><th>Max concurrency<br>(SLO met)</th>
+  </tr></thead>
+  <tbody>
+    <tr><td><b>MC-MI</b> MI300X</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+    <tr><td><b>MC-H</b> H100</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+    <tr><td><b>MC-A</b> A100</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+    <tr><td><b>IAAS</b> self-hosted vLLM</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+    <tr><td><b>RTX</b> RTX Pro</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+  </tbody>
+</table>
+
+<h4>Scenario 2 — Long prompts (RAG · agents)</h4>
+<table>
+  <thead><tr>
+    <th>Configuration</th><th>TTFT p50</th><th>TTFT p95</th><th>TBT p95</th><th>Output TPS</th><th>Max concurrency<br>(SLO met)</th>
+  </tr></thead>
+  <tbody>
+    <tr><td><b>MC-MI</b> MI300X</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+    <tr><td><b>MC-H</b> H100</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+    <tr><td><b>MC-A</b> A100</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+    <tr><td><b>IAAS</b> self-hosted vLLM</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+    <tr><td><b>RTX</b> RTX Pro</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+  </tbody>
+</table>
+
+<h4>Scenario 3 — Multi-turn sessions (prefix cache effect)</h4>
+<table>
+  <thead><tr>
+    <th>Configuration</th><th>Cache hit rate</th><th>TTFT improvement</th><th>Effective Output TPS</th><th>Notes</th>
+  </tr></thead>
+  <tbody>
+    <tr><td><b>MC-MI</b> MI300X</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">—</td></tr>
+    <tr><td><b>MC-H</b> H100</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">—</td></tr>
+    <tr><td><b>IAAS</b> self-hosted vLLM</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td>Depends on whether your own router implements affinity</td></tr>
+  </tbody>
+</table>
+<div class="note">
+  <b>Metric source</b>
+  Values for Managed Compute configurations can be read directly from Azure Monitor without any additional instrumentation
+  (<code>NormalizedTimeToFirstToken</code>, <code>NormalizedTimeBetweenTokens</code>, <code>TokensPerSecond</code>,
+  <code>ContextTokensCacheMatchRate</code>) — <a href="#en-c4">see C4</a>.
+</div>
+
+<div class="ph">
+  <div class="ph-t">Chart placeholder — throughput / TTFT curves vs. concurrency</div>
+  <div class="ph-d">A dual-axis chart revealing the saturation point of each configuration. Image to be inserted after measurement is complete.</div>
+</div>
+
+<h3 id="en-a3">A3. Cost-efficiency results — $ / 1M tokens</h3>
+<p>The calculation formula is identical to <a href="#en-d3">D3</a>. The table below represents <b>the conclusion of this entire document</b>.</p>
+<table>
+  <thead><tr>
+    <th>Configuration</th><th>Hourly cost</th><th>Output TPS<br>(SLO met)</th><th>$ / 1M output tokens</th><th>vs. MC-H</th>
+  </tr></thead>
+  <tbody>
+    <tr><td><b>MC-MI</b> MI300X</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+    <tr><td><b>MC-H</b> H100</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td>Baseline (1.00×)</td></tr>
+    <tr><td><b>MC-A</b> A100</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+    <tr><td><b>IAAS</b> self-hosted vLLM</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+    <tr><td><b>RTX</b> RTX Pro</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+  </tbody>
+</table>
+<div class="tip">
+  <b>Hypothesis — to be validated by measurement</b>
+  MI300X and H100 have the <b>same $7.91 hourly rate</b>. So if MI300X achieves higher concurrency and throughput thanks to its 192GB memory advantage,
+  <b>that throughput lead translates directly into a $/token lead</b>.
+  Identifying the <b>specific conditions (model size · context length · concurrency range)</b> under which this hypothesis holds is the primary goal of this test.
+</div>
+
+<h4>3-year TCO comparison — vs. on-prem RTX Pro</h4>
+<table>
+  <thead><tr><th>Item</th><th>Managed Compute (MI300X)</th><th>On-prem RTX Pro</th></tr></thead>
+  <tbody>
+    <tr><td>Initial CAPEX</td><td>$0</td><td class="tbd">TBD</td></tr>
+    <tr><td>Annual infrastructure OPEX</td><td class="tbd">TBD</td><td class="tbd">Power + facilities TBD</td></tr>
+    <tr><td>Annual operations labor</td><td>$0 (platform-managed)</td><td class="tbd">TBD FTE</td></tr>
+    <tr><td>Scaling lead time</td><td>Change instance count (immediate)</td><td class="tbd">Purchase lead time TBD</td></tr>
+    <tr><td>Day-0 new model adoption</td><td>Instant from catalog</td><td class="tbd">Days to weeks</td></tr>
+    <tr><td><b>3-year total</b></td><td class="tbd">TBD</td><td class="tbd">TBD</td></tr>
+  </tbody>
+</table>
+
+<h3 id="en-a4">A4. Recommended configurations by workload</h3>
+<table>
+  <thead><tr><th style="width:30%">Workload condition</th><th style="width:22%">Recommended configuration</th><th>Rationale</th></tr></thead>
+  <tbody>
+    <tr><td>Large model · long context · high concurrency</td><td class="tbd">TBD</td><td class="tbd">Cite A2/A3 results</td></tr>
+    <tr><td>Mid-size model · short prompts · low-latency priority</td><td class="tbd">TBD</td><td class="tbd">Cite A2/A3 results</td></tr>
+    <tr><td>Batch · offline bulk generation</td><td class="tbd">TBD</td><td class="tbd">Cite A2/A3 results</td></tr>
+    <tr><td>Intermittent · bursty traffic</td><td class="tbd">TBD</td><td>Weigh token-based billing against continuous GPU occupancy</td></tr>
+    <tr><td>Custom kernels · node-level control needed</td><td>Keep IaaS</td><td>Outside the scope where Managed Compute is a fit</td></tr>
+  </tbody>
+</table>
+
+<div class="ph">
+  <div class="ph-t">Estimated monthly cost · savings based on the customer's real traffic</div>
+  <div class="ph-d">
+    Calculated once the current profile (peak concurrency · daily tokens · current GPU count and actual utilization) is available.
+    Fill in the order: required instance count → monthly cost → savings vs. current.
+  </div>
+</div>
+
+<!-- ============================ PART B ============================ -->
+<h2 id="en-partB">Part B · What — What is Managed Compute</h2>
+
+<h3 id="en-b1">B1. Three deployment types, one endpoint</h3>
+<p>Foundry offers three deployment types, and <b>all three share the same endpoint, authentication, SDK, private networking, observability, and invoice</b>. In other words, choosing a deployment type is not an architecture decision but a <b>billing and capacity model decision</b>.</p>
+<table>
+  <thead><tr><th>Deployment type</th><th>Billing unit</th><th>Best for</th><th>Model scope</th></tr></thead>
+  <tbody>
+    <tr><td><b>Standard</b></td><td>Per input/output token</td><td>Bursty traffic, lowest barrier to entry</td><td>Frontier-focused</td></tr>
+    <tr><td><b>Provisioned (PTU)</b></td><td>Reserved throughput units</td><td>Predictable, sustained load</td><td>Frontier-focused</td></tr>
+    <tr><td><b>Managed Compute</b> <span class="tag">this guide</span></td><td><b>Per accelerator-hour</b></td><td>Continuous operation of open models on dedicated GPUs</td><td>Hundreds of open-source catalog models</td></tr>
+  </tbody>
+</table>
+<div class="tip">
+  <b>Key point</b>
+  Managed Compute is not a "buy tokens" model but a <b>"rent GPUs by the hour"</b> model.
+  As a result, its cost structure is <b>directly comparable to self-operated VMs</b>, and the more traffic you have, the more favorable it becomes versus token-based billing.
+</div>
+
+<h3 id="en-b2">B2. You pick a model, not a machine — the 4-choice model</h3>
+<p>In VM-based operations you must decide the GPU topology, tensor parallelism, runtime flags, container image, health probes, and load balancing yourself. In Managed Compute you choose <b>just four things</b> and Foundry configures and operates the rest of the serving stack.</p>
+<div class="grid g4">
+  <div class="card"><h4>1 · Model</h4><p>Select a catalog model and its <b>version</b>. It is a registry asset with an explicit version.</p></div>
+  <div class="card"><h4>2 · Template</h4><p>Select the <b>context length</b> and serving shape. Runtime, parser, and concurrency are already tuned.</p></div>
+  <div class="card"><h4>3 · Accelerator</h4><p>Select the accelerator family among <b>A100 / H100 / MI300X</b>. It is not a VM SKU.</p></div>
+  <div class="card"><h4>4 · Instances</h4><p>Set the <b>number of model instances (replicas)</b> for throughput and availability.</p></div>
+</div>
+<div class="card">
+  <h4>What Foundry decides on your behalf</h4>
+  <div class="flow">
+    <span class="box">GPU topology</span><span class="box">Runtime + flags</span><span class="box">Tensor parallelism</span>
+    <span class="box">Container image</span><span class="box">Health probes + routes</span><span class="box">Load balancing</span>
+  </div>
+  <p class="mono" style="margin-top:10px;font-size:13.5px">Total GPUs = (GPUs per template) × (number of model instances)</p>
+</div>
+<div class="note">
+  <b>A shift in mindset</b>
+  The question is no longer "how many ND96isr_H100_v5 do I need?" but <b>"how many instances of how many H100s should I run?"</b>
+  There is no need to force-pack a workload onto an 8-GPU node or carry idle GPUs.
+</div>
+
+<h3 id="en-b3">B3. Responsibility split</h3>
+<table>
+  <thead><tr><th style="width:50%">Operated by Microsoft</th><th style="width:50%">Decided · owned by the customer</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>
+        GPU topology<br>
+        Runtime + container image<br>
+        Deployment orchestration<br>
+        Routing + endpoint integration<br>
+        <b>Runtime upgrades + CVE patching</b><br>
+        Platform observability (metrics pipeline)
+      </td>
+      <td>
+        Model and model version<br>
+        Deployment template for the workload<br>
+        Accelerator family<br>
+        Model instance capacity<br>
+        Application prompts + tools<br>
+        Evaluation, safety, workload SLOs
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p>The <b>five production responsibilities</b> that remain in your backlog when running your own GPU stack (VM SKU · quota acquisition / Kubernetes / runtime images / routing · cache / patching · metrics · billing) are handed off to the platform.</p>
+
+<h3 id="en-b4">B4. IaaS GPU VM ↔ Managed Compute mapping</h3>
+<p>A mapping table to reference when moving an existing VM-based configuration to Managed Compute concepts.</p>
+<table>
+  <thead><tr><th>IaaS VM approach (current)</th><th>Managed Compute (after migration)</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>Choose a VM SKU (e.g. <code>Standard_ND96isr_H100_v5</code>)</td><td>Choose an <b>Accelerator family</b> (<code>H100_80GB</code>)</td><td>No need to decide VM shape</td></tr>
+    <tr><td>Size node count / GPUs per node</td><td><b>Number of model instances</b></td><td>GPUs per instance are determined by the template</td></tr>
+    <tr><td>AKS cluster, node pools, GPU Operator</td><td>None (platform-managed)</td><td>Operational burden removed</td></tr>
+    <tr><td>Build vLLM/SGLang containers yourself · tune flags</td><td><b>Deployment template</b> (version-pinned environment)</td><td>Pre-tuned, including tool/reasoning parsers</td></tr>
+    <tr><td>Ingress / API GW / load balancer / session affinity</td><td>Foundry router (prefix · session affinity)</td><td>KV cache-aware routing built in</td></tr>
+    <tr><td>Build your own Prometheus + Grafana</td><td>Azure Monitor metrics collected with zero setup</td><td>TTFT/TBT/TPS provided by default</td></tr>
+    <tr><td>Handle base-image CVEs · redeploy</td><td>Platform rolls out (no endpoint downtime)</td><td>No customer redeploy needed</td></tr>
+    <tr><td>Azure <b>VM quota</b> (vCPU-based)</td><td>Foundry <b>accelerator quota</b> (separate pool)</td><td>→ <a href="#en-b5">see B5</a></td></tr>
+    <tr><td>Download · scan · verify model weights yourself</td><td>Pre-staged, verified weights</td><td>No dependency on outbound access to HF Hub</td></tr>
+  </tbody>
+</table>
+<div class="warn">
+  <b>Caution — it is not a 1:1 mapping</b>
+  One <code>Standard_ND96isr_H100_v5</code> ≈ 8 H100s, but Managed Compute allocates <b>only as many GPUs as the model actually needs</b>.
+  If a mid-size model at 16K context is fine on a single H100, the cost of the 7 GPUs wasted in the VM approach disappears.
+  <b>A significant portion of the migration benefit originates here</b>, so measure your current GPU utilization first.
+</div>
+
+<h3 id="en-b5">B5. Quota structure and "Plan B"</h3>
+<p>Managed Compute quota is a <b>separate pool completely isolated from Azure VM quota</b>, and it is tracked per accelerator family (A100 / H100 / MI300X).</p>
+<div class="grid g3">
+  <div class="card"><h4>Default allocation</h4><p><b>8 per supported SKU</b> is the default. You can check usage and request increases on the <a href="https://ai.azure.com/managementCenter/quota" target="_blank" rel="noopener">Quota screen</a> in the Foundry portal.</p></div>
+  <div class="card"><h4>Isolation principle</h4><p><b>Even when you have not secured NC/ND-series VM quota</b>, Managed Compute quota is requested and approved independently. You <b>cannot dedicate existing Azure VM quota</b> to Managed Compute.</p></div>
+  <div class="card"><h4>Unit</h4><p>Granted per <b>accelerator family × region</b>. There is no need to reason about vCPU · VM-series combinations.</p></div>
+</div>
+
+<h4>Accelerator family identifiers</h4>
+<p>The values below are the notation actually used on the Foundry portal Quota screen and in the quota request form.</p>
+<table>
+  <thead><tr><th>Family</th><th>Identifier</th><th>Memory</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>NVIDIA A100</td><td><code>A100_80GB</code></td><td>80 GB</td><td>$3.95 / GPU-h</td></tr>
+    <tr><td>NVIDIA H100</td><td><code>H100_80GB</code></td><td>80 GB</td><td>$7.91 / GPU-h</td></tr>
+    <tr><td>NVIDIA H200</td><td><code>H200_141GB</code></td><td>141 GB</td><td>Selectable in the portal and request form</td></tr>
+    <tr><td>AMD MI300X</td><td><code>MI300_192GB</code></td><td><b>192 GB</b></td><td>$7.91 / GPU-h — same rate as H100</td></tr>
+  </tbody>
+</table>
+<div class="warn">
+  <b>Caution on identifier notation</b>
+  MI300X is written as <code>MI_300_192GB</code> in some official documents, but <b>the actual value in the portal and request form is <code>MI300_192GB</code></b>.
+  When writing SDK/IaC, use the value shown on the Quota screen, and check this item first if a deployment fails.
+</div>
+
+<figure>
+  <img src="assets/quota-1-usage.webp" alt="Foundry portal Quota screen — the Managed compute tab shows total/used/available and deployment count per accelerator" loading="lazy">
+  <figcaption><b>Manage → Quota → Managed compute tab</b> — <b>Total / Used / Available quota</b> per accelerator family are shown together with the <b>list of deployments</b> using that accelerator. The <b>Request quota</b> button in the top right is the entry point for increase requests. <span class="tag ghost">The screen is an example tenant with an approved increase — the default for a new subscription is 8 per SKU</span></figcaption>
+</figure>
+
+<div class="figrow two">
+  <figure>
+    <img src="assets/quota-2-request.webp" alt="Quota request form page 1 — select region, subscription ID, justification, and quota type" loading="lazy">
+    <figcaption><b>Request form 1/3</b> — Enter the region, <b>subscription ID</b>, and justification, and be sure to select <b>Managed Compute (GPU Accelerators)</b> under <b>Quota Type</b>. Choosing Model Deployment (PTU/RPM/TPM) or Fine-tuning routes to a different team.</figcaption>
+  </figure>
+  <figure>
+    <img src="assets/quota-3-confirm.webp" alt="Quota request form page 3 — enter accelerator type, scope, total quota amount, and the model to be deployed" loading="lazy">
+    <figcaption><b>Request form 3/3</b> — Enter the <b>Accelerator Type</b>, <b>Quota Scope</b> (currently Global), <b>Total Quota Required</b>, and the <b>Hugging Face ID of the model to be deployed</b>, then submit.</figcaption>
+  </figure>
+</div>
+<div class="warn">
+  <b>The most commonly mistaken field on the request form</b>
+  <b>Total Quota Required is the "total after the request," not the "increment."</b> If you currently hold 8 and need 24 more, enter <b>32, not 24</b>.
+  You must also enter the exact Hugging Face model ID of the model to be deployed so capacity is sized correctly.
+</div>
+
+<h4>Quota · capacity request paths</h4>
+<table>
+  <thead><tr><th style="width:26%">Path</th><th style="width:38%">URL</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><b>Foundry portal Quota</b></td>
+      <td><a href="https://ai.azure.com/managementCenter/quota" target="_blank" rel="noopener">ai.azure.com/managementCenter/quota</a></td>
+      <td>Check current usage per accelerator family and submit <b>quota increase requests</b> — primary path</td>
+    </tr>
+    <tr>
+      <td><b>Model · capacity request form</b></td>
+      <td><a href="https://forms.office.com/r/dUR3DLqVUP" target="_blank" rel="noopener">forms.office.com/r/dUR3DLqVUP</a></td>
+      <td>Request models not in the catalog + submit <b>expected scale, region, accelerator preference</b>. Also used for pre-negotiating large capacity</td>
+    </tr>
+    <tr>
+      <td>Quota management docs</td>
+      <td><a href="https://learn.microsoft.com/en-us/azure/foundry/how-to/quota" target="_blank" rel="noopener">Manage and increase quotas</a></td>
+      <td>Official docs on procedures, limits, and how to check</td>
+    </tr>
+    <tr>
+      <td>Feedback portal</td>
+      <td><a href="https://feedbackportal.microsoft.com/" target="_blank" rel="noopener">feedbackportal.microsoft.com</a></td>
+      <td>Log product requirements and issues</td>
+    </tr>
+  </tbody>
+</table>
+<div class="tip">
+  <b>Plan B scenario</b>
+  If a PoC is blocked by delayed IaaS GPU VM quota, you can <b>work around it via Managed Compute quota to deploy the same model immediately</b> and
+  proceed with benchmarking and functional validation. Because the endpoint is OpenAI-compatible, application code changes are minimized even if you later return to IaaS.
+  <b>What to prepare for the request form</b> — region, subscription ID, justification, accelerator family, <b>total quota amount after the request</b>, and the Hugging Face ID of the model to be deployed.
+</div>
+
+<!-- ============================ PART C ============================ -->
+<h2 id="en-partC">Part C · How — Migration hands-on</h2>
+
+<h3 id="en-c1">C1. From catalog to endpoint in 5 steps</h3>
+<p>The portal, Python SDK, and REST all use the <b>same model · template · accelerator · capacity values</b>. Typical provisioning time is 10–15 minutes.</p>
+<ol class="steps">
+  <li><h3>Discover</h3><p>Filter the model catalog by <b>Deployment option = Managed compute</b>, and confirm project availability with <b>Available in my project</b>. You can further filter by collection · modality · task · publisher.</p></li>
+  <li><h3>Select model</h3><p>On the model card, review the <b>version-pinned registry asset ID</b>, the upstream <b>license</b>, supported tasks, and available deployment options. License terms are surfaced as-is, so you can use them directly for legal review.</p></li>
+  <li><h3>Pick template</h3><p>Select the combination of runtime, <b>context length</b>, and GPU footprint. Example: 16K context = 1 A100/H100, 256K context = 2 A100/H100. Inside a template, the vLLM version, tool/reasoning parser, concurrency limit, probes, and scoring path are pinned.</p></li>
+  <li><h3>Set capacity</h3><p>Specify the accelerator family and the <b>number of model instances</b>. The total GPU count and hourly cost are finalized here.</p></li>
+  <li><h3>Deploy + score</h3><p>Once the status becomes <b>Succeeded</b>, call it immediately from the Playground or SDK.</p></li>
+</ol>
+
+<figure>
+  <img src="assets/deploy-1-catalog.webp" alt="Foundry portal model catalog filtered by the Managed compute deployment option" loading="lazy">
+  <figcaption><b>Step 1 · Discover</b> — Filter the catalog by <b>Deployment option = Managed compute</b>. Narrow by collection · modality · task · publisher and confirm availability with <b>Available in my project</b>.</figcaption>
+</figure>
+
+<figure>
+  <img src="assets/deploy-2-model-card.webp" alt="Model card screen — shows the version-pinned model ID, license, and deployment options" loading="lazy">
+  <figcaption><b>Step 2 · Select model</b> — On the model card, review the version-pinned registry asset ID, upstream license, and supported tasks. Only compatible templates are surfaced as deployment targets.</figcaption>
+</figure>
+
+<figure>
+  <img src="assets/deploy-3-template.webp" alt="Deployment template selection screen — comparing context length and GPU footprint combinations" loading="lazy">
+  <figcaption><b>Step 3 · Pick template</b> — Compare context length and GPU footprint combinations side by side. Runtime · parser · concurrency · probes are already pinned in the template and are <b>not something the customer tunes.</b></figcaption>
+</figure>
+
+<div class="figrow two">
+  <figure>
+    <img src="assets/deploy-4-accelerator.webp" alt="Accelerator type selection dropdown — A100_80GB, showing the number of accelerators needed" loading="lazy">
+    <figcaption><b>Step 4 · Accelerator</b> — Select an <b>accelerator family</b> such as <code>A100_80GB</code>. The details of the selected template (Best for, Max sequence length, Trade-off) and <b>Total Accelerators needed</b> are shown together.</figcaption>
+  </figure>
+  <figure>
+    <img src="assets/deploy-5-capacity.webp" alt="Model instance count configuration screen" loading="lazy">
+    <figcaption><b>Step 5 · Capacity</b> — Specifying the number of model instances finalizes the total GPU count. <span class="mono">Total GPUs = GPUs per template × instance count</span>, <span class="mono">hourly cost = total GPUs × accelerator rate</span>.</figcaption>
+  </figure>
+</div>
+<div class="tip">
+  <b>What to check on screen</b>
+  Copy the <b>Model ID</b> and <b>Deployment template ID</b> from the Step 4 screen directly into
+  the <code>MODEL_ID</code> · <code>TEMPLATE_ID</code> of the <a href="#en-c2">management SDK code in C2</a>. The portal and SDK use the same values.
+</div>
+
+<h4>What is inside a deployment template (for reference)</h4>
+<p>The customer picks just one shape, but a version-pinned template holds every decision needed for serving.</p>
+<div class="grid g2">
+  <div class="card"><h4>Serving contract</h4>
+<pre><span class="cm">// Template example — customer-relevant fields</span>
+{
+  <span class="kw">"name"</span>: "template-h100-256k--...",
+  <span class="kw">"deploymentTemplateType"</span>: "managed",
+  <span class="kw">"environmentId"</span>: ".../environments/hf-vllm-gpu/versions/&lt;v&gt;",
+  <span class="kw">"environmentVariables"</span>: {
+    "AML_VLLM_MAX_MODEL_LEN": "262144",
+    "AML_VLLM_TOOL_CALL_PARSER": "...",
+    "AML_VLLM_ENABLE_AUTO_TOOL_CHOICE": "true",
+    "AML_VLLM_REASONING_PARSER": "..."
+  },
+  <span class="kw">"requestSettings"</span>: {
+    "requestTimeout": "PT1M30S",
+    "maxConcurrentRequestsPerInstance": 128
+  },
+  <span class="kw">"scoringPath"</span>: "/v1/chat/completions",
+  <span class="kw">"scoringPort"</span>: 8000
+}</pre>
+  </div>
+  <div class="card"><h4>Health · hardware contract</h4>
+<pre>{
+  <span class="kw">"livenessProbe"</span>: {
+    "initialDelay": "PT5M", "period": "PT10S",
+    "timeout": "PT10S", "failureThreshold": 30,
+    "path": "/health", "port": 8000
+  },
+  <span class="kw">"readinessProbe"</span>: { <span class="cm">/* same */</span> },
+  <span class="kw">"modelMountPath"</span>: "/var/azureml-app",
+  <span class="kw">"allowedInstanceType"</span>: [
+    "Standard_NC80adis_H100_v5",
+    "Standard_ND96isr_H100_v5"
+  ],
+  <span class="kw">"acceleratorMaps"</span>: [{
+    "acceleratorType": "H100_80GB",
+    "numberOfAcceleratorsPerModelInstance": 2
+  }]
+}</pre>
+  </div>
+</div>
+<p><b>How to read it</b> — <code>environmentId</code> pins the runtime image version, the environment variables determine context length and parsers, and <code>acceleratorMaps</code> defines the <b>billing unit</b> (GPUs per instance). The 5-minute warmup probe protects rollout decisions.</p>
+
+<h3 id="en-c2">C2. Code migration — you change two lines</h3>
+<p>If you were using your own vLLM OpenAI server, the only application changes are the <b>base URL and authentication</b>.</p>
+
+<h4>Before — self-hosted vLLM endpoint</h4>
+<pre>from openai import OpenAI
+
+client = OpenAI(
+    base_url=<span class="kw">"http://vllm-svc.internal:8000/v1"</span>,
+    api_key=<span class="kw">"EMPTY"</span>,
+)
+
+resp = client.chat.completions.create(
+    model=<span class="kw">"/models/my-model"</span>,   <span class="cm"># local mount path</span>
+    messages=[{"role": "user", "content": "..."}],
+)</pre>
+
+<h4>After — Foundry unified endpoint</h4>
+<pre>from azure.identity import DefaultAzureCredential, get_bearer_token_provider
+from openai import OpenAI
+
+token_provider = get_bearer_token_provider(
+    DefaultAzureCredential(), <span class="kw">"https://ai.azure.com/.default"</span>
+)
+
+client = OpenAI(
+    base_url=f<span class="kw">"https://{ACCOUNT}.services.ai.azure.com/openai/v1"</span>,
+    api_key=token_provider,
+)
+
+resp = client.chat.completions.create(
+    model=<span class="kw">"gemma-4-31b"</span>,        <span class="cm"># ← deployment name (not the catalog model ID)</span>
+    messages=[{"role": "user", "content": "..."}],
+)
+print(resp.choices[0].message.content)</pre>
+<div class="warn">
+  <b>The most common mistake</b>
+  The <code>model=</code> field must contain the <b>deployment name, not the catalog model ID</b>.
+  Also, models with a custom route rather than an OpenAI-compatible path use the <code>/managed-deployments/&lt;deployment-name&gt;/</code> path.
+</div>
+
+<h4>Deployment automation — management SDK (IaC replacement)</h4>
+<pre>from azure.identity import DefaultAzureCredential
+from azure.mgmt.cognitiveservices import CognitiveServicesManagementClient
+
+client = CognitiveServicesManagementClient(
+    DefaultAzureCredential(), SUBSCRIPTION_ID)
+
+poller = client.managed_compute_deployments.begin_create_or_update(
+    resource_group_name=RESOURCE_GROUP,
+    account_name=ACCOUNT_NAME,
+    deployment_name=<span class="kw">"gemma-4-31b"</span>,
+    resource={
+        "sku": {"name": "GlobalManagedCompute", <span class="kw">"capacity"</span>: 1},   <span class="cm"># number of model instances</span>
+        "properties": {
+            "model": MODEL_ID,                    <span class="cm"># versioned catalog asset</span>
+            "deploymentTemplate": TEMPLATE_ID,    <span class="cm"># runtime · context · GPU footprint</span>
+            <span class="kw">"acceleratorType"</span>: "H100_80GB",     <span class="cm"># not a VM SKU</span>
+        },
+    },
+)
+deployment = poller.result()</pre>
+<p>Your existing Terraform/Bicep AKS node pool + Helm chart definitions are replaced by this single block. Scaling out is just changing <code>capacity</code>.</p>
+
+<h3 id="en-c3">C3. Network · Auth · Permissions</h3>
+<div class="grid g3">
+  <div class="card"><h4>Private networking</h4><p>A Private Endpoint applies to the <b>entire Foundry project</b>. Frontier/PTU, Managed Compute, and Agents + Tools all fall within the same private boundary.</p></div>
+  <div class="card"><h4>Authentication</h4><p><b>Microsoft Entra ID recommended.</b> Account keys are also supported, but they carry key-rotation overhead, so prefer managed-identity based auth.</p></div>
+  <div class="card"><h4>Data residency</h4><p>Currently <b>Global Managed Compute</b> (region-affinity information is surfaced to the customer). <b>Data Zone</b> is on the roadmap. <span class="tag roadmap">Roadmap</span></p></div>
+</div>
+<h4>Least privilege by task</h4>
+<table>
+  <thead><tr><th>Task</th><th>Minimum role / credential</th></tr></thead>
+  <tbody>
+    <tr><td>Create · modify · delete deployments</td><td>Cognitive Services Contributor or Foundry Owner</td></tr>
+    <tr><td>View · list deployments</td><td>Cognitive Services User, Foundry User, or Project Manager</td></tr>
+    <tr><td>Call with Entra ID</td><td>Foundry User on the Foundry account</td></tr>
+    <tr><td>Call with an account key</td><td>Account key (read permission required to retrieve the key)</td></tr>
+  </tbody>
+</table>
+<h4>Endpoint paths</h4>
+<table>
+  <thead><tr><th>Purpose</th><th>Base URL</th></tr></thead>
+  <tbody>
+    <tr><td>OpenAI-compatible (chat, embeddings, etc.)</td><td><code>https://&lt;account&gt;.services.ai.azure.com/openai/v1/</code></td></tr>
+    <tr><td>All Managed Compute deployments (including custom routes)</td><td><code>https://&lt;account&gt;.services.ai.azure.com/managed-deployments/&lt;deployment-name&gt;/</code></td></tr>
+  </tbody>
+</table>
+
+<h3 id="en-c4">C4. Observability — zero setup from the first request</h3>
+<p>Metrics are collected in Azure Monitor automatically, without building your own Prometheus/Grafana. They are queryable at <b>1-minute grain</b> and can be split by deployment, model, model version, region, status, stream type, and API.</p>
+<table>
+  <thead><tr><th style="width:16%">Category</th><th style="width:30%">Question</th><th>Metrics</th></tr></thead>
+  <tbody>
+    <tr><td><b>HTTP</b></td><td>Do requests reach the model and succeed?</td><td><code>ModelRequests</code>, <code>ModelAvailabilityRate</code></td></tr>
+    <tr><td><b>Latency</b></td><td>How quickly do users receive tokens?</td><td><code>TimeToResponse</code>, <code>NormalizedTimeToFirstToken</code>, <code>TimeToLastByte</code>, <code>NormalizedTimeBetweenTokens</code>, <code>TokensPerSecond</code></td></tr>
+    <tr><td><b>Usage</b></td><td>How much work is each deployment doing?</td><td><code>InputTokens</code>, <code>OutputTokens</code>, <code>TotalTokens</code>, <code>cacheReadInputTokens</code>, <code>ModelActiveTokens</code>, <code>ContextTokensCacheMatchRate</code></td></tr>
+  </tbody>
+</table>
+<div class="tip">
+  <b>Metrics directly tied to cost optimization</b>
+  <code>ContextTokensCacheMatchRate</code> and <code>cacheReadInputTokens</code> show prefix cache efficiency.
+  If these are low, there is room to adjust prompt structure (placing a shared prefix) to raise throughput on the same GPU.
+  <code>TokensPerSecond</code> ÷ hourly rate becomes the denominator of the <b>$/1M token</b> calculation (→ <a href="#en-d3">D3</a>).
+</div>
+
+<figure>
+  <img src="assets/monitor-1-http.webp" alt="Foundry portal deployment Monitor tab — total tokens, input/output tokens, model request count, and availability rate charts" loading="lazy">
+  <figcaption><b>Per-deployment Monitor tab</b> — Open a deployment and, with no setup, total tokens, input-vs-output token trends, model request count, and the <b>Model availability rate</b> are shown right away. This is the screen you used to build with Prometheus/Grafana in a self-hosted stack.</figcaption>
+</figure>
+
+<figure>
+  <img src="assets/monitor-2-latency.webp" alt="Foundry portal latency metrics screen" loading="lazy">
+  <figcaption><b>Latency metrics</b> — View TTFT, inter-token intervals, and end-to-end percentiles. You can collect the TTFT/TBT figures for the <a href="#en-a2">Part A benchmark</a> directly from this screen.</figcaption>
+</figure>
+
+<div class="figrow two">
+  <figure>
+    <img src="assets/monitor-3-usage.webp" alt="Azure Monitor metrics — average Tokens Per Second split by ModelName" loading="lazy">
+    <figcaption><b>Azure Monitor · TokensPerSecond</b> — Splitting by <code>ModelName</code> compares average throughput per deployed model. This value is exactly the <b>denominator of the $/1M token calculation</b>.</figcaption>
+  </figure>
+  <figure>
+    <img src="assets/monitor-4-detail.webp" alt="Azure Monitor metrics — Total Tokens sum time series split by ModelName" loading="lazy">
+    <figcaption><b>Azure Monitor · TotalTokens</b> — Token consumption time series per model. Queryable at 1-minute grain, with splits by deployment, model, version, region, status, and stream type.</figcaption>
+  </figure>
+</div>
+<div class="note">
+  <b>When to use each screen</b>
+  The <b>Foundry portal Monitor tab</b> is for quickly viewing the health of a single deployment,
+  while <b>Azure Monitor Metrics</b> is for comparing across multiple deployments or attaching alerts, dashboards, and log integration.
+  Use the latter for benchmark data collection.
+</div>
+
+<h3 id="en-c5">C5. Scale-out and cache-aware routing</h3>
+<p>In a self-hosted stack you had to implement the gateway, router, and session affinity yourself, but the Foundry router <b>balances the outstanding prompt token load while simultaneously preserving cache validity and session locality</b>.</p>
+<div class="grid g4">
+  <div class="card"><h4>Prompt cache</h4><p>Reuses KV state for repeated prefixes.</p></div>
+  <div class="card"><h4>Prefix affinity</h4><p>Routes shared prompts to a <b>warmed replica</b>.</p></div>
+  <div class="card"><h4>Session affinity</h4><p>Keeps <b>related turns</b> on the same instance as far as load allows.</p></div>
+  <div class="card"><h4>Load-aware spillover</h4><p>When the preferred replica is busy, exceeds the <b>soft load limit</b> to protect balance.</p></div>
+</div>
+<p>The only scaling lever is <b>changing the number of model instances</b>. No adding nodes, tuning the scheduler, or reconfiguring the router is required.</p>
+
+<h3 id="en-c6">C6. Migration checklist</h3>
+<table>
+  <thead><tr><th style="width:6%">#</th><th style="width:28%">Step</th><th>Items to confirm</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>Collect the current profile</td><td>Models · versions in use, input/output token distribution, peak concurrency, current GPU count and <b>actual utilization</b>, monthly GPU cost</td></tr>
+    <tr><td>2</td><td>Catalog matching</td><td>Whether the same model is in the catalog; if not, submit the model request form</td></tr>
+    <tr><td>3</td><td>Template selection</td><td>Confirm the context length you actually need (over-selecting = 2× GPUs = 2× cost)</td></tr>
+    <tr><td>4</td><td>Quota check</td><td>Remaining quota per accelerator family; request an increase if needed (default 8/SKU)</td></tr>
+    <tr><td>5</td><td>PoC deployment</td><td>Deploy with 1 instance → validate in Playground → connect the benchmark harness</td></tr>
+    <tr><td>6</td><td>Code migration</td><td>Change 3 places — <code>base_url</code>, auth, <code>model=</code> (deployment name) — then run regression tests</td></tr>
+    <tr><td>7</td><td>Quality regression validation</td><td>Confirm that tool calling / structured output / reasoning parser behavior matches the existing setup</td></tr>
+    <tr><td>8</td><td>Network · permissions</td><td>Configure Private Endpoint, assign Entra ID roles, remove account-key usage</td></tr>
+    <tr><td>9</td><td>Load testing</td><td>Confirm TTFT/TBT p95 at the target concurrency → finalize instance count</td></tr>
+    <tr><td>10</td><td>Cost finalization</td><td>Calculate monthly cost with the <a href="#en-d1">D1 formula</a> → compare against current</td></tr>
+    <tr><td>11</td><td>Cutover</td><td>Split traffic (canary) → compare metrics → full switch → decommission the old cluster</td></tr>
+  </tbody>
+</table>
+
+<!-- ============================ PART D ============================ -->
+<h2 id="en-partD">Part D · Economics &amp; Decision</h2>
+
+<h3 id="en-d1">D1. Cost formula and rates</h3>
+<div class="card">
+  <p class="mono" style="font-size:16px;font-weight:700;margin:4px 0 12px">
+    Cost = (accelerators per instance) × (number of model instances) × (hours) × (hourly rate)
+  </p>
+  <p style="margin:0;color:var(--cp-text-muted);font-size:14px">Managed Compute is billed <b>per model instance</b>. It is proportional to GPU occupancy time, independent of token count.</p>
+</div>
+<table>
+  <thead><tr><th>Accelerator</th><th>Memory</th><th>SKU</th><th style="text-align:right">Hourly rate</th></tr></thead>
+  <tbody>
+    <tr><td><b>A100</b></td><td>80 GB</td><td>Global Managed Compute</td><td style="text-align:right"><b>$3.95</b> / accelerator-hour</td></tr>
+    <tr><td><b>H100</b></td><td>80 GB</td><td>Global Managed Compute</td><td style="text-align:right"><b>$7.91</b> / accelerator-hour</td></tr>
+    <tr><td><b>MI300X</b></td><td><b>192 GB</b></td><td>Global Managed Compute</td><td style="text-align:right"><b>$7.91</b> / accelerator-hour</td></tr>
+  </tbody>
+</table>
+<div class="tip">
+  <b>The logic for choosing MI300X</b>
+  MI300X and H100 have the <b>same hourly rate</b>, but MI300X provides <b>192GB</b> per GPU (2.4× the 80GB of H100).
+  So for <b>workloads where model weights + KV cache are memory-constrained</b> (large models, long context, high concurrency),
+  you can accommodate the same workload with fewer GPUs, or achieve higher concurrency with the same number of GPUs.
+  In that case, <b>$/token improves directly</b>.
+</div>
+<div class="note">
+  <b>Additional discounts</b>
+  Azure Consumption Discount (ACD) applies. Commerce Reservations (reservation discounts) are on the roadmap. <span class="tag roadmap">Roadmap</span>
+  The rates above are 2026-08 retail; query the Azure Retail Prices API for the latest values (→ <a href="#en-refs">References</a>).
+</div>
+
+<h4>Example hourly cost by template shape</h4>
+<p>Even for the same model, <b>the context length you choose can double the cost.</b> Measure the length you actually need first.</p>
+<table>
+  <thead><tr><th>Context</th><th>Accelerator configuration</th><th style="text-align:right">Per hour</th><th style="text-align:right">Month (730h) · 1 instance</th></tr></thead>
+  <tbody>
+    <tr><td>16K</td><td>1 × A100</td><td style="text-align:right">$3.95</td><td style="text-align:right">$2,884</td></tr>
+    <tr><td>16K</td><td>1 × H100</td><td style="text-align:right">$7.91</td><td style="text-align:right">$5,774</td></tr>
+    <tr><td>256K</td><td>2 × A100</td><td style="text-align:right">$7.90</td><td style="text-align:right">$5,767</td></tr>
+    <tr><td>256K</td><td>2 × H100</td><td style="text-align:right">$15.82</td><td style="text-align:right">$11,549</td></tr>
+  </tbody>
+</table>
+
+<h3 id="en-d2">D2. Scenario simulation template</h3>
+<p>Plug measured benchmark values into the table below to complete a per-customer comparison. <b>The figures are placeholders</b> and must be replaced with measured results.</p>
+<table>
+  <thead><tr>
+    <th>Item</th><th>Current IaaS VM</th><th>Managed Compute (H100)</th><th>Managed Compute (MI300X)</th>
+  </tr></thead>
+  <tbody>
+    <tr><td>GPU count (actually needed)</td><td>Rounded up per node → idle occurs</td><td>Actual usage per template</td><td>Can be reduced thanks to memory headroom</td></tr>
+    <tr><td>Monthly infrastructure cost</td><td>VM hours × rate (idle included)</td><td>Accelerator-hours × $7.91</td><td>Accelerator-hours × $7.91</td></tr>
+    <tr><td>Operations labor</td><td>K8s · runtime · patching · router (FTE)</td><td>—</td><td>—</td></tr>
+    <tr><td>Day-0 model adoption</td><td>Days to weeks (porting project)</td><td>Instant from catalog</td><td>Instant from catalog</td></tr>
+    <tr><td>Scaling lead time</td><td>Quota + adding nodes</td><td>Change instance count</td><td>Change instance count</td></tr>
+    <tr><td><b>$ / 1M output tokens</b></td><td>Measurement needed</td><td>Measurement needed</td><td>Measurement needed</td></tr>
+  </tbody>
+</table>
+<div class="warn">
+  <b>What you must always include in the comparison</b>
+  When comparing against on-prem/self-operated, comparing only GPU hardware price captures just half the real cost. Also account for <b>idle GPU cost, operations FTE, patching · CVE effort, the cost of building routing · observability, and the opportunity cost of scaling lead time</b>.
+</div>
+
+<h3 id="en-d3">D3. The killer metric — how to calculate $ / 1M tokens</h3>
+<div class="kpi">
+  <p class="mono" style="font-size:15px;font-weight:700;margin:2px 0">
+    $ / 1M output tokens = (hourly rate × GPUs per instance) ÷ (measured output TPS × 3600) × 1,000,000
+  </p>
+</div>
+<h4>Worked example</h4>
+<p>If a single-H100 instance ($7.91/h) delivers a measured output throughput of <b>2,000 tok/s</b> at the target concurrency:</p>
+<pre>Tokens produced per hour = 2,000 × 3,600 = 7,200,000 tokens
+$ / 1M tokens            = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
+<p>If, for the same workload, MI300X delivers <b>2,800 tok/s</b> thanks to memory headroom, then $7.91 ÷ 10.08 ≈ <b>$0.78</b>, an <b>improvement of about 29%</b>. Since the rate is the same, <b>the throughput lead becomes the cost lead directly</b>.</p>
+<div class="note">
+  <b>Cautions when measuring</b>
+  <ul style="margin:6px 0 0">
+    <li>Use <b>throughput at a fixed SLO</b>. The valid figure is the TPS at the maximum concurrency that still satisfies TTFT p95 &lt; target. Maximum throughput measured without an SLO does not reproduce in production.</li>
+    <li>Match the input/output token ratio to real traffic. Prefill-heavy RAG and decode-heavy chat produce very different results.</li>
+    <li>In multi-turn scenarios, <code>ContextTokensCacheMatchRate</code> rises, so recompute using <b>effective throughput that includes the cache effect</b>.</li>
+  </ul>
+</div>
+
+<h3 id="en-d4">D4. Current constraints and roadmap</h3>
+<table>
+  <thead><tr><th style="width:14%">Timeframe</th><th>Details</th></tr></thead>
+  <tbody>
+    <tr><td><span class="tag ok">Now</span></td><td>Base catalog models · private networking · caching + affinity routing · default quota 8/SKU · Global Managed Compute</td></tr>
+    <tr><td><span class="tag roadmap">Next</span></td><td>Data Zone Managed Compute · Capacity Reservations</td></tr>
+    <tr><td><span class="tag roadmap">Ignite 2026</span></td><td>GA planned (target before Ignite 2026)</td></tr>
+    <tr><td><span class="tag roadmap">Expand</span></td><td>Full-weight BYOW (bring your own weights) · LoRA adapters · Commerce Reservations</td></tr>
+  </tbody>
+</table>
+<div class="warn">
+  <b>Current constraints — disclose in advance</b>
+  <ul style="margin:6px 0 0">
+    <li><b>Public Preview</b> — No SLA is provided and it is not yet recommended for production workloads. Always state this clearly when proposing to customers.</li>
+    <li><b>No content filtering applied</b> — Azure AI Content Safety filters are not included in the Managed Compute data path. If request/response filtering is required, the application must call the Content Safety API directly.</li>
+    <li><b>Custom weights (BYOW) not yet supported</b> — If you need to serve a fine-tuned model, you must run IaaS in parallel until the roadmap date.</li>
+    <li><b>Data residency is Global</b> — If you have a requirement to confine processing within a data zone, you must wait for Data Zone GA.</li>
+    <li><b>Default quota 8/SKU</b> — Large deployments require a <a href="#en-b5">quota increase request in advance</a>.</li>
+    <li>Pricing, reserved-capacity, and commitment-discount policies are changing during the preview. Roadmap plans and timing may also change.</li>
+  </ul>
+</div>
+
+<h4>Reference case</h4>
+<div class="card">
+  <p style="margin:0 0 6px"><span class="eyebrow">Customer proof</span></p>
+  <div class="grid g3" style="margin:10px 0">
+    <div class="stat"><div class="n">~1T</div><div class="l">Tokens processed for OTel2.0</div></div>
+    <div class="stat"><div class="n">~530</div><div class="l">GPUs via Managed Compute</div></div>
+    <div class="stat"><div class="n">430</div><div class="l">AMD Instinct MI300X GPUs</div></div>
+  </div>
+  <p style="margin:6px 0 0;font-size:14px">AT&amp;T generated OTel2.0 training data with Phi-4 on Managed Compute, <b>saving tens of millions of dollars</b> compared with frontier models. MI300X makes up the majority of the total GPUs.</p>
+</div>
+
+<!-- ============================ REFERENCES ============================ -->
+<h2 id="en-refs">References</h2>
+<p class="lede" style="font-size:15px;margin-top:0">Links accessible as of 2026-08-25. URLs may move as the product changes.</p>
+
+<h3>Top 5 essential documents</h3>
+<table>
+  <thead><tr><th style="width:34%">Document</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><a href="https://learn.microsoft.com/en-us/azure/foundry/concepts/managed-compute-overview" target="_blank" rel="noopener">Managed compute in Microsoft Foundry</a></td><td><b>The most important document.</b> A complete overview of model instances, deployment templates, accelerator families, runtime, endpoint routes, scaling, billing · quota, RBAC, and constraints</td></tr>
+    <tr><td><a href="https://learn.microsoft.com/en-us/azure/foundry/how-to/deploy-models-managed?tabs=openai-entra&amp;pivots=python-sdk" target="_blank" rel="noopener">Deploy open-source models with managed compute</a></td><td>Portal · Python SDK deployment, inference, scaling, monitoring, troubleshooting — <b>the primary reference for Part C</b></td></tr>
+    <tr><td><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/model-catalog-overview" target="_blank" rel="noopener">Model catalog overview</a></td><td>Catalog structure, filters, model cards, licenses — <b>C1 Steps 1–2</b></td></tr>
+    <tr><td><a href="https://learn.microsoft.com/en-us/azure/foundry/how-to/quota" target="_blank" rel="noopener">Manage and increase quotas</a></td><td>Procedures for checking quotas and requesting increases — <b>B5 Plan B</b></td></tr>
+    <tr><td><a href="https://learn.microsoft.com/en-us/rest/api/cost-management/retail-prices/azure-retail-prices" target="_blank" rel="noopener">Azure Retail Prices API</a></td><td>Query the latest accelerator-hour rates — <b>D1 rate refresh</b></td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <b>Model request process</b>
+  ① <b>REQUEST</b> — Submit model ID · version, use case · modality, expected scale · region, and accelerator preference →
+  ② <b>CURATE</b> — Review customer demand, license · security, architecture support, and template · accelerator options →
+  ③ <b>PUBLISH</b> — Publish verified weights, a signed runtime image, compatible templates, and model card · license metadata
+</div>
+
+<footer>
+  <p><b>Foundry Managed Compute Migration Guide</b> — Part A / B / C / D · v2.0 · Last updated 2026-08-25</p>
+  <p>Based on the Foundry Managed Compute LevelUp materials (2026-08-24) and official Microsoft Learn documentation. Managed Compute is in <b>Public Preview</b>, and pricing, quota, and roadmap information may change. Please re-verify against the latest official documentation and Azure Pricing before presenting to customers.</p>
+</footer>
+</main>
+</div>
+
+<script>
+(() => {
+  // ---- scroll spy (per language block) ----
+  document.querySelectorAll('nav.toc').forEach(nav => {
+    const links = Array.from(nav.querySelectorAll('a'));
+    const map = new Map();
+    links.forEach(a => {
+      const el = document.getElementById(a.getAttribute('href').slice(1));
+      if (el) map.set(el, a);
+    });
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          links.forEach(l => l.classList.remove('active'));
+          const a = map.get(e.target);
+          if (a) a.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-80px 0px -70% 0px', threshold: 0 });
+    map.forEach((_, el) => obs.observe(el));
+  });
+
+  // ---- language toggle ----
+  const KO_TITLE = document.title;
+  const EN_TITLE = 'Foundry Managed Compute Migration Guide \u2014 From IaaS GPU VMs to Managed Compute';
+  const btns = Array.from(document.querySelectorAll('[data-lang-btn]'));
+
+  function apply(lang, persist) {
+    lang = (lang === 'en') ? 'en' : 'ko';
+    document.body.dataset.lang = lang;
+    document.documentElement.lang = lang;
+    document.title = (lang === 'en') ? EN_TITLE : KO_TITLE;
+    btns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.langBtn === lang)));
+    if (persist) {
+      try { localStorage.setItem('mcGuideLang', lang); } catch (e) {}
+      const u = new URL(window.location.href);
+      u.searchParams.set('lang', lang);
+      history.replaceState(null, '', u);
+    }
+  }
+
+  let initial = new URLSearchParams(location.search).get('lang');
+  if (!initial) { try { initial = localStorage.getItem('mcGuideLang'); } catch (e) {} }
+  if (!initial) initial = (navigator.language || '').toLowerCase().startsWith('ko') ? 'ko' : 'en';
+  apply(initial, false);
+
+  btns.forEach(b => b.addEventListener('click', () => {
+    const target = b.dataset.langBtn;
+    // keep reading position across languages when possible
+    const cur = document.body.dataset.lang;
+    let anchor = null;
+    const active = document.querySelector('body[data-lang="' + cur + '"] nav.toc a.active');
+    if (active) {
+      const id = active.getAttribute('href').slice(1);
+      anchor = (cur === 'ko') ? 'en-' + id : id.replace(/^en-/, '');
+    }
+    apply(target, true);
+    if (anchor) {
+      const el = document.getElementById(anchor);
+      if (el) el.scrollIntoView({ block: 'start' });
+    }
+  }));
+})();
+</script>
+</body>
+</html>
