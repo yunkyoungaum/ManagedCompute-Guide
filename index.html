@@ -281,7 +281,7 @@ body[data-lang="en"] .lang-ko{display:none}
     <a class="lvl2" href="#b5">B5. 쿼터 구조와 플랜 B</a>
     <a class="lvl1" href="#partC">Part C · How</a>
     <a class="lvl2" href="#c1">C1. 5단계 배포</a>
-    <a class="lvl2" href="#c2">C2. 커스텀 모델 (Fireworks BYOW) <span class="tag wip">WIP</span></a>
+    <a class="lvl2" href="#c2">C2. 커스텀 모델 (Fireworks BYOW) <span class="tag roadmap">Soon</span></a>
     <a class="lvl2" href="#c3">C3. 코드 마이그레이션</a>
     <a class="lvl2" href="#c4">C4. 네트워크 · 인증 · 권한</a>
     <a class="lvl2" href="#c5">C5. 관측</a>
@@ -312,7 +312,7 @@ body[data-lang="en"] .lang-ko{display:none}
   <div class="warn draftbar">
     <b>Draft — 작성 중인 문서입니다</b>
     이 문서는 <b>초안(Draft)</b> 상태이며 내용이 계속 변경됩니다. Part A의 벤치마크 수치는 아직 실측 전이고,
-    <b>C2 (커스텀 모델 — Fireworks BYOW)</b> 절은 <span class="tag wip">Working on</span> 상태입니다.
+    <b>C2 (커스텀 모델 — Fireworks BYOW)</b> 절은 <span class="tag roadmap">Coming soon</span> 상태입니다.
     <b>고객에게 그대로 배포하지 마시고</b>, 인용 전 최신 공식 문서와 Azure Pricing으로 반드시 재확인하세요.
   </div>
 
@@ -729,136 +729,11 @@ body[data-lang="en"] .lang-ko{display:none}
 </div>
 <p><b>읽는 법</b> — <code>environmentId</code>가 런타임 이미지 버전을 고정하고, 환경 변수가 컨텍스트 길이와 파서를 결정하며, <code>acceleratorMaps</code>가 <b>과금 단위</b>(인스턴스당 GPU 수)를 정의합니다. 5분 워밍업 프로브는 롤아웃 판정을 보호합니다.</p>
 
-<h3 id="c2">C2. 커스텀 모델 올리기 — Fireworks BYOW <span class="tag wip">Working on</span></h3>
+<h3 id="c2">C2. 커스텀 모델 올리기 — Fireworks BYOW <span class="tag roadmap">Coming soon</span></h3>
 
 <div class="warn draftbar">
-  <b>Working on — 검토 중인 절입니다</b>
-  이 절은 Fireworks on Foundry 공식 문서(2026-08 기준)를 바탕으로 작성 중이며, <b>실습 검증이 끝나지 않았습니다.</b>
-  LoRA·추측 디코딩은 <b>프리뷰</b>이고 포털 UI 경로와 지원 아키텍처 목록은 변경될 수 있습니다. 실제 적용 전 아래 참고 문서를 다시 확인하세요.
-</div>
-<p>파인튜닝 결과물이나 사내 자체 가중치처럼 <b>카탈로그에 없는 모델</b>을 올려야 한다면, Foundry의 <b>Fireworks 커스텀 모델 임포트(Bring Your Own Weights)</b> 경로를 사용합니다. 자체 가중치를 Foundry 프로젝트 안으로 등록해 Fireworks 추론 런타임 위에서 서빙하며, <b>LoRA 어댑터</b>와 <b>추측 디코딩용 draft 모델</b>도 함께 지원합니다(둘 다 프리뷰).</p>
-
-<div class="warn">
-  <b>Managed Compute와는 다른 제품 경로입니다</b>
-  같은 Foundry 포털 안에 있지만 <b>과금·용량 모델이 완전히 다릅니다.</b> 아래 차이를 먼저 이해하고 시작하세요.
-</div>
-
-<table>
-  <thead><tr><th style="width:22%">항목</th><th>Managed Compute (Part C 본문)</th><th>Fireworks 커스텀 임포트 (이 절)</th></tr></thead>
-  <tbody>
-    <tr><td>대상 모델</td><td><b>카탈로그 모델</b></td><td><b>내 가중치</b> · 파인튜닝 결과 · LoRA</td></tr>
-    <tr><td>용량 단위</td><td>가속기-시간 (GPU-h)</td><td><b>PTU</b> (Provisioned Throughput Unit)</td></tr>
-    <tr><td>배포 SKU</td><td>Managed Compute 배포 템플릿</td><td><code>GlobalProvisionedManaged</code></td></tr>
-    <tr><td>모델 포맷</td><td>레지스트리 자산 ID</td><td><code>format: FireworksCustom</code></td></tr>
-    <tr><td>런타임</td><td>Foundry 최적화 서빙 스택</td><td>Fireworks 추론 런타임</td></tr>
-    <tr><td>리전</td><td>가속기 계열 × 리전 쿼터</td><td>Global Provisioned은 <b>Azure Government를 제외한 전 글로벌 리전</b></td></tr>
-  </tbody>
-</table>
-
-<h4>사전 준비</h4>
-<ul>
-  <li><b>구독 관리자가 기능을 등록</b>해야 합니다. Azure Portal → 구독 → <b>미리 보기 기능</b> → <code>Fireworks.EnableDeploy</code> → 등록. 반영까지 최대 30분 소요됩니다.</li>
-  <li>Foundry 리소스 + <b>Foundry 프로젝트</b></li>
-  <li>권한 — 임포트·배포 관리에는 <b>Cognitive Services Contributor</b>, 모델 배포에는 <b>Foundry Owner</b> 롤</li>
-  <li><b>Azure Developer CLI</b>(<code>azd</code>) 로컬 설치. <code>azd version</code> 및 <code>azd ai models create --help</code> 로 확인하고, 업로드 전 <code>azd auth login</code> 실행</li>
-</ul>
-
-<h4>5단계 임포트 흐름</h4>
-<ol class="steps">
-  <li><h3>Prepare</h3><p>모델·어댑터·draft 파일을 한 폴더에 준비합니다. <b>아키텍처가 지원되는 Fireworks 베이스 모델과 일치</b>해야 합니다.</p></li>
-  <li><h3>Register</h3><p>Foundry 포털 → <b>Build → Models → Models 탭 → Generate upload command</b>. 베이스 모델, 모델 이름·버전, <b>weight type</b>, 로컬 경로를 입력합니다.</p></li>
-  <li><h3>Upload</h3><p>포털이 생성한 <code>azd</code> 명령을 복사해 로컬 터미널에서 실행합니다. <code>--source</code>를 가중치 폴더로 맞추세요. 수십 GB 모델은 업로드에 상당한 시간이 걸립니다.</p></li>
-  <li><h3>Deploy</h3><p>Custom Models 목록에서 상태가 <b>Registered</b>인지 확인한 뒤 <b>Deploy</b>. 배포 이름과 <b>PTU 수</b>를 지정하고 가격 조건에 동의합니다.</p></li>
-  <li><h3>Test</h3><p>Playground에서 해당 배포를 선택해 테스트 프롬프트를 보내 응답을 확인합니다.</p></li>
-</ol>
-
-<h4>필요한 모델 파일</h4>
-<table>
-  <thead><tr><th>파일</th><th>Full weight</th><th>LoRA 어댑터 <span class="tag roadmap">프리뷰</span></th><th>Draft 모델 <span class="tag roadmap">프리뷰</span></th></tr></thead>
-  <tbody>
-    <tr><td><code>config.json</code></td><td>필수</td><td>불필요 (베이스에서 상속)</td><td>필수</td></tr>
-    <tr><td><code>*.safetensors</code> / <code>*.bin</code></td><td>필수</td><td>해당 없음</td><td>필수</td></tr>
-    <tr><td><code>tokenizer.model</code> / <code>tokenizer.json</code> / <code>tokenizer_config.json</code></td><td>필수</td><td>불필요 (베이스에서 상속)</td><td>필수</td></tr>
-    <tr><td><code>adapter_config.json</code></td><td>해당 없음</td><td>필수</td><td>해당 없음</td></tr>
-    <tr><td><code>adapter_model.bin</code> / <code>adapter_model.safetensors</code></td><td>해당 없음</td><td>필수</td><td>해당 없음</td></tr>
-  </tbody>
-</table>
-<div class="note">
-  <b>파일 누락이 임포트 실패 1순위 원인입니다.</b> <code>--source</code> 폴더에 위 파일이 모두 들어있는지 업로드 전에 확인하세요.
-</div>
-
-<h4>LoRA 어댑터 <span class="tag roadmap">프리뷰</span></h4>
-<p>LoRA는 전체 가중치를 올리지 않고 파인튜닝 산출물만 올리는 방식입니다. Fireworks는 배포 시 <b>LoRA 가중치를 베이스에 병합해 full-weight 모델로 만들어</b> 성능을 예측 가능하게 유지합니다. 등록 시 <b>rank</b>와 <b>alpha</b>를 지정하며 target modules·dropout은 선택입니다.</p>
-<div class="warn">
-  <b>LoRA 미지원 베이스 모델</b>
-  Ministral 3 3B Instruct 2512 · Qwen 3.5 35B A3B · Qwen 3.5 4B 를 제외한 모든 Fireworks 베이스 모델이 LoRA 배포를 지원합니다.
-</div>
-
-<h4>추측 디코딩 (Speculative decoding) <span class="tag roadmap">프리뷰</span></h4>
-<p>작은 draft 모델이 토큰을 제안하고 타깃 모델이 검증하는 방식으로 <b>디코딩 지연을 줄입니다.</b> draft 모델을 등록한 뒤 배포 시 <b>같은 모델 패밀리</b>의 타깃 모델과 draft 토큰 수를 지정합니다.</p>
-<div class="note">
-  <b>효과가 나는 워크로드를 고르세요</b>
-  프리필(컨텍스트 처리) 지연은 개선되지 않습니다. <b>입력이 길고 출력이 짧은</b> 워크로드에서는 이득이 제한적이며, 출력 토큰이 많은 생성 워크로드에서 효과가 큽니다.
-</div>
-
-<h4>배포 자동화 — REST / CLI</h4>
-<p>등록이 끝난 뒤에는 코드로 배포할 수 있습니다. 아래는 Global Provisioned <b>80 PTU</b>로 배포하는 예시입니다.</p>
-<pre>PUT https://management.azure.com/subscriptions/{subscription-id}/resourceGroups/{resource-group}
-    /providers/Microsoft.CognitiveServices/accounts/{foundry-account}
-    /deployments/{deployment-name}?api-version=2025-06-01
-
-{
-  "sku": { "name": "GlobalProvisionedManaged", "capacity": 80 },
-  "properties": {
-    "model": {
-      "name": "&lt;registered-model-name&gt;",
-      "format": "FireworksCustom",
-      "version": "1",
-      "source": "/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.CognitiveServices/accounts/{foundry-account}/projects/{foundry-project}"
-    }
-  }
-}</pre>
-<pre>az cognitiveservices account deployment create \
-  --name "&lt;foundry-resource-name&gt;" \
-  --resource-group "&lt;resource-group&gt;" \
-  --deployment-name "&lt;deployment-name&gt;" \
-  --model-name "&lt;registered-model-name&gt;" \
-  --model-version "1" \
-  --model-format "FireworksCustom" \
-  --model-source "/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.CognitiveServices/accounts/{foundry-account}/projects/{foundry-project}" \
-  --sku-name "GlobalProvisionedManaged" \
-  --sku-capacity 80</pre>
-<div class="note">
-  <b>배포 제약</b>
-  하나의 프로젝트 안에서 <b>동일한 임포트 커스텀 모델의 활성 배포는 1개</b>만 가질 수 있습니다.
-</div>
-
-<h4>트러블슈팅</h4>
-<table>
-  <thead><tr><th style="width:34%">증상</th><th>조치</th></tr></thead>
-  <tbody>
-    <tr><td>파일 누락으로 임포트 실패</td><td><code>config.json</code>, 가중치 파일, 인덱스 파일, 토크나이저 파일이 모두 있는지 확인</td></tr>
-    <tr><td>아키텍처 불일치</td><td>선택한 베이스 모델 아키텍처가 실제 가중치와 맞는지 확인</td></tr>
-    <tr><td>업로드 타임아웃 · 정지</td><td>네트워크 확인 후 재시도. 대용량 모델은 안정적인 고대역폭 회선 사용</td></tr>
-    <tr><td>배포 실패</td><td>쿼터 충분 여부와 Fireworks on Foundry <b>지원 리전</b> 여부 확인</td></tr>
-    <tr><td>draft 모델이 목록에 없음</td><td>draft·타깃이 <b>같은 프로젝트</b>에 등록되어 있고 <b>같은 모델 패밀리·호환 아키텍처</b>인지 확인</td></tr>
-    <tr><td>쿼터 초과</td><td><a href="https://aka.ms/fireworks-quota" target="_blank" rel="noopener">쿼터 추가 요청</a> 또는 기존 배포의 PTU 재배분</td></tr>
-  </tbody>
-</table>
-
-<div class="warn">
-  <b>컴플라이언스 확인 필수</b>
-  Fireworks on Foundry는 <b>EU Data Boundary 약정에서 제외</b>되며, <b>FedRAMP 인증이 없습니다.</b>
-  <b>PCI DSS 적용 대상이 아니므로</b> 결제·카드소유자 데이터를 저장·처리·전송하는 용도로 사용해서는 안 됩니다.
-  규제 요건이 있는 고객은 도입 전 반드시 보안·법무 검토를 거치세요.
-</div>
-
-<div class="note">
-  <b>참고 문서</b>
-  <a href="https://learn.microsoft.com/en-us/azure/foundry/how-to/fireworks/import-custom-models?tabs=rest-api" target="_blank" rel="noopener">Import custom models with Fireworks</a> ·
-  <a href="https://learn.microsoft.com/en-us/azure/foundry/how-to/fireworks/enable-fireworks-models" target="_blank" rel="noopener">Use Fireworks models on Foundry</a> ·
-  <a href="https://learn.microsoft.com/en-us/azure/ai-foundry/openai/concepts/provisioned-throughput" target="_blank" rel="noopener">Provisioned throughput 개념</a> ·
-  <a href="https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/install-azd" target="_blank" rel="noopener">Azure Developer CLI 설치</a>
+  <b>Coming soon</b>
+  이 절은 준비 중입니다.
 </div>
 
 <h3 id="c3">C3. 코드 마이그레이션 — 바꾸는 것은 두 줄</h3>
@@ -1185,7 +1060,7 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
     <a class="lvl2" href="#en-b5">B5. Quota structure and Plan B</a>
     <a class="lvl1" href="#en-partC">Part C · How</a>
     <a class="lvl2" href="#en-c1">C1. 5-step deployment</a>
-    <a class="lvl2" href="#en-c2">C2. Custom models (Fireworks BYOW) <span class="tag wip">WIP</span></a>
+    <a class="lvl2" href="#en-c2">C2. Custom models (Fireworks BYOW) <span class="tag roadmap">Soon</span></a>
     <a class="lvl2" href="#en-c3">C3. Code migration</a>
     <a class="lvl2" href="#en-c4">C4. Network · Auth · Permissions</a>
     <a class="lvl2" href="#en-c5">C5. Observability</a>
@@ -1216,7 +1091,7 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
   <div class="warn draftbar">
     <b>Draft — work in progress</b>
     This document is a <b>draft</b> and its contents will keep changing. The benchmark figures in Part A have not been measured yet, and
-    <b>C2 (custom models — Fireworks BYOW)</b> is <span class="tag wip">Working on</span>.
+    <b>C2 (custom models — Fireworks BYOW)</b> is <span class="tag roadmap">Coming soon</span>.
     <b>Do not distribute it to customers as-is</b>, and re-verify against the latest official docs and Azure Pricing before quoting anything.
   </div>
 
@@ -1633,136 +1508,11 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
 </div>
 <p><b>How to read it</b> — <code>environmentId</code> pins the runtime image version, the environment variables determine context length and parsers, and <code>acceleratorMaps</code> defines the <b>billing unit</b> (GPUs per instance). The 5-minute warmup probe protects rollout decisions.</p>
 
-<h3 id="en-c2">C2. Bringing your own model — Fireworks BYOW <span class="tag wip">Working on</span></h3>
+<h3 id="en-c2">C2. Bringing your own model — Fireworks BYOW <span class="tag roadmap">Coming soon</span></h3>
 
 <div class="warn draftbar">
-  <b>Working on — this section is under review</b>
-  This section is being written from the official Fireworks on Foundry docs (as of 2026-08) and <b>has not been validated hands-on yet.</b>
-  LoRA and speculative decoding are <b>previews</b>, and the portal UI path and supported architecture list may change. Re-check the reference docs below before applying this in practice.
-</div>
-<p>When you need to deploy a model that <b>isn't in the catalog</b> — a fine-tuning output or your own proprietary weights — use Foundry's <b>Fireworks custom model import (Bring Your Own Weights)</b> path. You register your own weights inside a Foundry project and serve them on the Fireworks inference runtime, with support for <b>LoRA adapters</b> and <b>draft models for speculative decoding</b> (both in preview).</p>
-
-<div class="warn">
-  <b>This is a different product path from Managed Compute</b>
-  It lives in the same Foundry portal, but the <b>billing and capacity model is completely different.</b> Understand the differences below before you start.
-</div>
-
-<table>
-  <thead><tr><th style="width:22%">Aspect</th><th>Managed Compute (rest of Part C)</th><th>Fireworks custom import (this section)</th></tr></thead>
-  <tbody>
-    <tr><td>Target model</td><td><b>Catalog models</b></td><td><b>Your own weights</b> · fine-tuning outputs · LoRA</td></tr>
-    <tr><td>Capacity unit</td><td>Accelerator-hour (GPU-h)</td><td><b>PTU</b> (Provisioned Throughput Unit)</td></tr>
-    <tr><td>Deployment SKU</td><td>Managed Compute deployment template</td><td><code>GlobalProvisionedManaged</code></td></tr>
-    <tr><td>Model format</td><td>Registry asset ID</td><td><code>format: FireworksCustom</code></td></tr>
-    <tr><td>Runtime</td><td>Foundry optimized serving stack</td><td>Fireworks inference runtime</td></tr>
-    <tr><td>Regions</td><td>Accelerator family × region quota</td><td>Global Provisioned is available in <b>all global regions except Azure Government</b></td></tr>
-  </tbody>
-</table>
-
-<h4>Prerequisites</h4>
-<ul>
-  <li><b>A subscription admin must register the feature.</b> Azure portal → Subscription → <b>Preview features</b> → <code>Fireworks.EnableDeploy</code> → Register. It can take up to 30 minutes to take effect.</li>
-  <li>A Foundry resource and a <b>Foundry project</b></li>
-  <li>Permissions — <b>Cognitive Services Contributor</b> to manage import and deployments, and the <b>Foundry Owner</b> role to deploy models</li>
-  <li><b>Azure Developer CLI</b> (<code>azd</code>) installed locally. Verify with <code>azd version</code> and <code>azd ai models create --help</code>, and run <code>azd auth login</code> before uploading</li>
-</ul>
-
-<h4>The five-step import flow</h4>
-<ol class="steps">
-  <li><h3>Prepare</h3><p>Put the model, adapter, or draft files in one folder. The <b>architecture must match a supported Fireworks base model.</b></p></li>
-  <li><h3>Register</h3><p>Foundry portal → <b>Build → Models → Models tab → Generate upload command</b>. Provide the base model, model name and version, the <b>weight type</b>, and the local path.</p></li>
-  <li><h3>Upload</h3><p>Copy the generated <code>azd</code> command and run it in a local terminal, pointing <code>--source</code> at your weights folder. Models of tens of gigabytes can take a long time to upload.</p></li>
-  <li><h3>Deploy</h3><p>Confirm the model shows <b>Registered</b> in the Custom Models list, then select <b>Deploy</b>. Set the deployment name and the number of <b>PTUs</b>, and accept the pricing terms.</p></li>
-  <li><h3>Test</h3><p>Select the deployment in the Playground, send a test prompt, and confirm you get a valid response.</p></li>
-</ol>
-
-<h4>Required model files</h4>
-<table>
-  <thead><tr><th>File</th><th>Full weight</th><th>LoRA adapter <span class="tag roadmap">preview</span></th><th>Draft model <span class="tag roadmap">preview</span></th></tr></thead>
-  <tbody>
-    <tr><td><code>config.json</code></td><td>Required</td><td>Not required (inherited from base)</td><td>Required</td></tr>
-    <tr><td><code>*.safetensors</code> / <code>*.bin</code></td><td>Required</td><td>Not applicable</td><td>Required</td></tr>
-    <tr><td><code>tokenizer.model</code> / <code>tokenizer.json</code> / <code>tokenizer_config.json</code></td><td>Required</td><td>Not required (inherited from base)</td><td>Required</td></tr>
-    <tr><td><code>adapter_config.json</code></td><td>Not applicable</td><td>Required</td><td>Not applicable</td></tr>
-    <tr><td><code>adapter_model.bin</code> / <code>adapter_model.safetensors</code></td><td>Not applicable</td><td>Required</td><td>Not applicable</td></tr>
-  </tbody>
-</table>
-<div class="note">
-  <b>Missing files are the number-one cause of import failure.</b> Verify that the <code>--source</code> folder contains every file above before you upload.
-</div>
-
-<h4>LoRA adapters <span class="tag roadmap">preview</span></h4>
-<p>LoRA lets you upload only the fine-tuning artifact instead of a full copy of the weights. At deployment time Fireworks <b>merges the LoRA weights into a full-weight version of the model</b>, which keeps performance predictable. You configure <b>rank</b> and <b>alpha</b> at registration; target modules and dropout are optional.</p>
-<div class="warn">
-  <b>Base models without LoRA support</b>
-  All Fireworks base models support LoRA deployment except Ministral 3 3B Instruct 2512, Qwen 3.5 35B A3B, and Qwen 3.5 4B.
-</div>
-
-<h4>Speculative decoding <span class="tag roadmap">preview</span></h4>
-<p>A smaller draft model proposes tokens that the target model verifies, which <b>reduces decoding latency.</b> Register the draft model, then at deployment pick a target model from the <b>same model family</b> and set the draft token count.</p>
-<div class="note">
-  <b>Pick a workload where it pays off</b>
-  It does not improve prefill (context processing) latency. Workloads with <b>long inputs and short outputs</b> see limited benefit; generation-heavy workloads benefit most.
-</div>
-
-<h4>Automating deployment — REST / CLI</h4>
-<p>Once the model is registered you can deploy it from code. The examples below deploy with <b>80 PTUs</b> of Global Provisioned throughput.</p>
-<pre>PUT https://management.azure.com/subscriptions/{subscription-id}/resourceGroups/{resource-group}
-    /providers/Microsoft.CognitiveServices/accounts/{foundry-account}
-    /deployments/{deployment-name}?api-version=2025-06-01
-
-{
-  "sku": { "name": "GlobalProvisionedManaged", "capacity": 80 },
-  "properties": {
-    "model": {
-      "name": "&lt;registered-model-name&gt;",
-      "format": "FireworksCustom",
-      "version": "1",
-      "source": "/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.CognitiveServices/accounts/{foundry-account}/projects/{foundry-project}"
-    }
-  }
-}</pre>
-<pre>az cognitiveservices account deployment create \
-  --name "&lt;foundry-resource-name&gt;" \
-  --resource-group "&lt;resource-group&gt;" \
-  --deployment-name "&lt;deployment-name&gt;" \
-  --model-name "&lt;registered-model-name&gt;" \
-  --model-version "1" \
-  --model-format "FireworksCustom" \
-  --model-source "/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.CognitiveServices/accounts/{foundry-account}/projects/{foundry-project}" \
-  --sku-name "GlobalProvisionedManaged" \
-  --sku-capacity 80</pre>
-<div class="note">
-  <b>Deployment constraint</b>
-  You can only have <b>one active deployment of the same imported custom model</b> at a time within a given project.
-</div>
-
-<h4>Troubleshooting</h4>
-<table>
-  <thead><tr><th style="width:34%">Symptom</th><th>Resolution</th></tr></thead>
-  <tbody>
-    <tr><td>Import fails with missing files</td><td>Verify that <code>config.json</code>, the weight files, the index file, and the tokenizer files are all present</td></tr>
-    <tr><td>Architecture mismatch</td><td>Confirm the selected base model architecture matches your actual weights</td></tr>
-    <tr><td>Upload times out or stalls</td><td>Check the network and retry. Use a stable, high-bandwidth connection for large models</td></tr>
-    <tr><td>Deployment fails</td><td>Confirm you have sufficient quota and that Fireworks on Foundry is available in your region</td></tr>
-    <tr><td>Draft model isn't listed</td><td>Confirm the draft and target are registered in the <b>same project</b> and are in the <b>same model family and architecture-compatible</b></td></tr>
-    <tr><td>Quota exceeded</td><td><a href="https://aka.ms/fireworks-quota" target="_blank" rel="noopener">Request more quota</a> or reallocate PTUs from existing deployments</td></tr>
-  </tbody>
-</table>
-
-<div class="warn">
-  <b>Compliance review is mandatory</b>
-  Fireworks on Foundry is <b>excluded from EU Data Boundary commitments</b> and <b>has not achieved FedRAMP</b>.
-  <b>PCI DSS is not applicable</b>, so it must not be used to store, process, or transmit payment or cardholder data.
-  Customers with regulatory requirements should complete a security and legal review before adopting it.
-</div>
-
-<div class="note">
-  <b>Reference docs</b>
-  <a href="https://learn.microsoft.com/en-us/azure/foundry/how-to/fireworks/import-custom-models?tabs=rest-api" target="_blank" rel="noopener">Import custom models with Fireworks</a> ·
-  <a href="https://learn.microsoft.com/en-us/azure/foundry/how-to/fireworks/enable-fireworks-models" target="_blank" rel="noopener">Use Fireworks models on Foundry</a> ·
-  <a href="https://learn.microsoft.com/en-us/azure/ai-foundry/openai/concepts/provisioned-throughput" target="_blank" rel="noopener">Provisioned throughput concepts</a> ·
-  <a href="https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/install-azd" target="_blank" rel="noopener">Install the Azure Developer CLI</a>
+  <b>Coming soon</b>
+  This section is being prepared.
 </div>
 
 <h3 id="en-c3">C3. Code migration — you change two lines</h3>
