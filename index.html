@@ -268,7 +268,7 @@ body[data-lang="en"] .lang-ko{display:none}
   <div class="brand">Microsoft Foundry</div>
   <div class="brand-sub">Managed Compute<br>전환 가이드 <span class="tag draft">Draft</span></div>
   <nav class="toc">
-    <a class="lvl1" href="#partA">Part A · Benchmark</a>
+    <a class="lvl1" href="#partA">Part A · Benchmark <span class="tag wip">WIP</span></a>
     <a class="lvl2" href="#a1">A1. 테스트 설계</a>
     <a class="lvl2" href="#a2">A2. 처리량 · 지연</a>
     <a class="lvl2" href="#a3">A3. 가성비 결과</a>
@@ -283,7 +283,7 @@ body[data-lang="en"] .lang-ko{display:none}
     <a class="lvl2" href="#c1">C1. 5단계 배포</a>
     <a class="lvl2" href="#c2">C2. 커스텀 모델 올리기 <span class="tag roadmap">Soon</span></a>
     <a class="lvl2" href="#c3">C3. 코드 마이그레이션</a>
-    <a class="lvl2" href="#c4">C4. 네트워크 · 인증 · 권한</a>
+    <a class="lvl2" href="#c4">C4. 네트워크 · 인증 · 권한 <span class="tag wip">WIP</span></a>
     <a class="lvl2" href="#c5">C5. 관측</a>
     <a class="lvl2" href="#c6">C6. 스케일아웃 · 캐시</a>
     <a class="lvl2" href="#c7">C7. 전환 체크리스트</a>
@@ -311,7 +311,8 @@ body[data-lang="en"] .lang-ko{display:none}
 
   <div class="warn draftbar">
     <b>Draft — 작성 중인 문서입니다</b>
-    이 문서는 <b>초안(Draft)</b> 상태이며 내용이 계속 변경됩니다. Part A의 벤치마크 수치는 아직 실측 전이고,
+    이 문서는 <b>초안(Draft)</b> 상태이며 내용이 계속 변경됩니다.
+    <b>Part A (벤치마크)</b>와 <b>C4 (네트워크 · 인증 · 권한)</b>는 <span class="tag wip">Working on</span>,
     <b>C2 (커스텀 모델 올리기)</b> 절은 <span class="tag roadmap">Coming soon</span> 상태입니다.
     <b>고객에게 그대로 배포하지 마시고</b>, 인용 전 최신 공식 문서와 Azure Pricing으로 반드시 재확인하세요.
   </div>
@@ -323,7 +324,7 @@ body[data-lang="en"] .lang-ko{display:none}
   </div>
 
 <!-- ============================ PART A ============================ -->
-<h2 id="partA">Part A · 벤치마크 성능 테스트 결과</h2>
+<h2 id="partA">Part A · 벤치마크 성능 테스트 결과 <span class="tag wip">Working on</span></h2>
 <div class="warn">
   <b>Placeholder — 측정 대기</b>
   이 파트의 모든 수치는 <b>실측 결과로 대체될 자리표시자</b>입니다. 표의 <span class="tbd">TBD</span> 셀을 채우면
@@ -553,7 +554,7 @@ body[data-lang="en"] .lang-ko{display:none}
 <div class="grid g3">
   <div class="card"><h4>기본 할당</h4><p><b>지원 SKU당 8</b>이 기본값입니다. Foundry 포털의 <a href="https://ai.azure.com/managementCenter/quota" target="_blank" rel="noopener">Quota 화면</a>에서 사용량 확인 및 상향 요청이 가능합니다.</p></div>
   <div class="card"><h4>분리 원칙</h4><p>NC/ND 계열 <b>VM 쿼터를 확보하지 못한 상황에서도</b> Managed Compute 쿼터는 독립적으로 요청·승인됩니다. 기존 Azure VM 쿼터를 Managed Compute에 <b>전용할 수는 없습니다.</b></p></div>
-  <div class="card"><h4>단위</h4><p><b>가속기 계열 × 리전</b> 단위로 부여됩니다. vCPU·VM 시리즈 조합을 따질 필요가 없습니다.</p></div>
+  <div class="card"><h4>단위</h4><p><b>가속기 계열</b> 단위로 부여됩니다. 현재 배포 스코프가 <b>Global 하나</b>이므로 리전별로 쪼개 관리할 필요가 없고, vCPU·VM 시리즈 조합도 따질 필요가 없습니다.</p></div>
 </div>
 
 <h4>가속기 계열 식별자</h4>
@@ -786,7 +787,12 @@ poller = client.managed_compute_deployments.begin_create_or_update(
 deployment = poller.result()</pre>
 <p>기존 Terraform/Bicep의 AKS 노드풀 + Helm 차트 정의가 이 한 블록으로 대체됩니다. <code>capacity</code>만 바꾸면 스케일아웃입니다.</p>
 
-<h3 id="c4">C4. 네트워크 · 인증 · 권한</h3>
+<h3 id="c4">C4. 네트워크 · 인증 · 권한 <span class="tag wip">Working on</span></h3>
+
+<div class="warn draftbar">
+  <b>Working on — 작성 중인 절입니다</b>
+  이 절의 내용은 검토·보완 중이며 변경될 수 있습니다.
+</div>
 <div class="grid g3">
   <div class="card"><h4>프라이빗 네트워킹</h4><p>Private Endpoint가 <b>Foundry 프로젝트 전체</b>에 적용됩니다. Frontier/PTU, Managed Compute, Agents + Tools가 동일한 프라이빗 경계 안에 들어옵니다.</p></div>
   <div class="card"><h4>인증</h4><p><b>Microsoft Entra ID 권장</b>. 계정 키도 지원하지만 키 로테이션 부담이 있으므로 관리 ID 기반을 우선하세요.</p></div>
@@ -1036,7 +1042,7 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
   <div class="brand">Microsoft Foundry</div>
   <div class="brand-sub">Managed Compute<br>Migration Guide <span class="tag draft">Draft</span></div>
   <nav class="toc">
-    <a class="lvl1" href="#en-partA">Part A · Benchmark</a>
+    <a class="lvl1" href="#en-partA">Part A · Benchmark <span class="tag wip">WIP</span></a>
     <a class="lvl2" href="#en-a1">A1. Test design</a>
     <a class="lvl2" href="#en-a2">A2. Throughput · Latency</a>
     <a class="lvl2" href="#en-a3">A3. Cost-efficiency results</a>
@@ -1051,7 +1057,7 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
     <a class="lvl2" href="#en-c1">C1. 5-step deployment</a>
     <a class="lvl2" href="#en-c2">C2. Bringing your own model <span class="tag roadmap">Soon</span></a>
     <a class="lvl2" href="#en-c3">C3. Code migration</a>
-    <a class="lvl2" href="#en-c4">C4. Network · Auth · Permissions</a>
+    <a class="lvl2" href="#en-c4">C4. Network · Auth · Permissions <span class="tag wip">WIP</span></a>
     <a class="lvl2" href="#en-c5">C5. Observability</a>
     <a class="lvl2" href="#en-c6">C6. Scale-out · Cache</a>
     <a class="lvl2" href="#en-c7">C7. Migration checklist</a>
@@ -1079,7 +1085,8 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
 
   <div class="warn draftbar">
     <b>Draft — work in progress</b>
-    This document is a <b>draft</b> and its contents will keep changing. The benchmark figures in Part A have not been measured yet, and
+    This document is a <b>draft</b> and its contents will keep changing.
+    <b>Part A (benchmarks)</b> and <b>C4 (network · auth · permissions)</b> are <span class="tag wip">Working on</span>, and
     <b>C2 (bringing your own model)</b> is <span class="tag roadmap">Coming soon</span>.
     <b>Do not distribute it to customers as-is</b>, and re-verify against the latest official docs and Azure Pricing before quoting anything.
   </div>
@@ -1091,7 +1098,7 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
   </div>
 
 <!-- ============================ PART A ============================ -->
-<h2 id="en-partA">Part A · Benchmark performance test results</h2>
+<h2 id="en-partA">Part A · Benchmark performance test results <span class="tag wip">Working on</span></h2>
 <div class="warn">
   <b>Placeholder — awaiting measurement</b>
   Every figure in this part is a <b>placeholder to be replaced with measured results</b>. Once you fill in the <span class="tbd">TBD</span> cells in the tables,
@@ -1321,7 +1328,7 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
 <div class="grid g3">
   <div class="card"><h4>Default allocation</h4><p><b>8 per supported SKU</b> is the default. You can check usage and request increases on the <a href="https://ai.azure.com/managementCenter/quota" target="_blank" rel="noopener">Quota screen</a> in the Foundry portal.</p></div>
   <div class="card"><h4>Isolation principle</h4><p><b>Even when you have not secured NC/ND-series VM quota</b>, Managed Compute quota is requested and approved independently. You <b>cannot dedicate existing Azure VM quota</b> to Managed Compute.</p></div>
-  <div class="card"><h4>Unit</h4><p>Granted per <b>accelerator family × region</b>. There is no need to reason about vCPU · VM-series combinations.</p></div>
+  <div class="card"><h4>Unit</h4><p>Granted per <b>accelerator family</b>. Because the deployment scope is currently <b>Global only</b>, you don't have to manage it region by region, and there's no need to reason about vCPU · VM-series combinations.</p></div>
 </div>
 
 <h4>Accelerator family identifiers</h4>
@@ -1554,7 +1561,12 @@ poller = client.managed_compute_deployments.begin_create_or_update(
 deployment = poller.result()</pre>
 <p>Your existing Terraform/Bicep AKS node pool + Helm chart definitions are replaced by this single block. Scaling out is just changing <code>capacity</code>.</p>
 
-<h3 id="en-c4">C4. Network · Auth · Permissions</h3>
+<h3 id="en-c4">C4. Network · Auth · Permissions <span class="tag wip">Working on</span></h3>
+
+<div class="warn draftbar">
+  <b>Working on — this section is in progress</b>
+  The content of this section is still being reviewed and expanded, and may change.
+</div>
 <div class="grid g3">
   <div class="card"><h4>Private networking</h4><p>A Private Endpoint applies to the <b>entire Foundry project</b>. Frontier/PTU, Managed Compute, and Agents + Tools all fall within the same private boundary.</p></div>
   <div class="card"><h4>Authentication</h4><p><b>Microsoft Entra ID recommended.</b> Account keys are also supported, but they carry key-rotation overhead, so prefer managed-identity based auth.</p></div>
