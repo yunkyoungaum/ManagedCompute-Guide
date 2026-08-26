@@ -268,30 +268,30 @@ body[data-lang="en"] .lang-ko{display:none}
   <div class="brand">Microsoft Foundry</div>
   <div class="brand-sub">Managed Compute<br>전환 가이드 <span class="tag draft">Draft</span></div>
   <nav class="toc">
-    <a class="lvl1" href="#partA">Part A · Benchmark <span class="tag wip">WIP</span></a>
+    <a class="lvl1" href="#partA">Part A · 벤치마크 <span class="tag wip">WIP</span></a>
     <a class="lvl2" href="#a1">A1. 테스트 설계</a>
-    <a class="lvl2" href="#a2">A2. 처리량 · 지연</a>
-    <a class="lvl2" href="#a3">A3. 가성비 결과</a>
-    <a class="lvl2" href="#a4">A4. 워크로드별 권장</a>
-    <a class="lvl1" href="#partB">Part B · What</a>
-    <a class="lvl2" href="#b1">B1. 3가지 배포 타입</a>
-    <a class="lvl2" href="#b2">B2. 4-선택 모델</a>
-    <a class="lvl2" href="#b3">B3. 책임 분계선</a>
-    <a class="lvl2" href="#b4">B4. IaaS VM ↔ MC 매핑</a>
-    <a class="lvl2" href="#b5">B5. 쿼터 구조와 플랜 B</a>
-    <a class="lvl1" href="#partC">Part C · How</a>
-    <a class="lvl2" href="#c1">C1. 5단계 배포</a>
-    <a class="lvl2" href="#c2">C2. 커스텀 모델 올리기 <span class="tag roadmap">Soon</span></a>
-    <a class="lvl2" href="#c3">C3. 코드 마이그레이션</a>
+    <a class="lvl2" href="#a2">A2. 처리량과 지연</a>
+    <a class="lvl2" href="#a3">A3. 비용 효율</a>
+    <a class="lvl2" href="#a4">A4. 워크로드별 권장 구성</a>
+    <a class="lvl1" href="#partB">Part B · 개념</a>
+    <a class="lvl2" href="#b1">B1. 배포 타입 3가지</a>
+    <a class="lvl2" href="#b2">B2. 배포 4-선택</a>
+    <a class="lvl2" href="#b3">B3. 책임 분계</a>
+    <a class="lvl2" href="#b4">B4. IaaS VM 대응표</a>
+    <a class="lvl2" href="#b5">B5. 쿼터와 용량 확보</a>
+    <a class="lvl1" href="#partC">Part C · 전환 실습</a>
+    <a class="lvl2" href="#c1">C1. 배포 5단계</a>
+    <a class="lvl2" href="#c2">C2. 커스텀 모델 <span class="tag roadmap">Soon</span></a>
+    <a class="lvl2" href="#c3">C3. 코드 전환</a>
     <a class="lvl2" href="#c4">C4. 네트워크 · 인증 · 권한 <span class="tag wip">WIP</span></a>
-    <a class="lvl2" href="#c5">C5. 관측</a>
-    <a class="lvl2" href="#c6">C6. 스케일아웃 · 캐시</a>
+    <a class="lvl2" href="#c5">C5. 모니터링</a>
+    <a class="lvl2" href="#c6">C6. 스케일아웃과 캐시</a>
     <a class="lvl2" href="#c7">C7. 전환 체크리스트</a>
-    <a class="lvl1" href="#partD">Part D · Economics</a>
+    <a class="lvl1" href="#partD">Part D · 비용과 의사결정</a>
     <a class="lvl2" href="#d1">D1. 비용 공식</a>
-    <a class="lvl2" href="#d2">D2. 시나리오 시뮬레이션</a>
-    <a class="lvl2" href="#d3">D3. $/1M 토큰 산출법</a>
-    <a class="lvl2" href="#d4">D4. 제약 · 로드맵</a>
+    <a class="lvl2" href="#d2">D2. 시나리오 비교</a>
+    <a class="lvl2" href="#d3">D3. $ / 1M 토큰</a>
+    <a class="lvl2" href="#d4">D4. 제약과 로드맵</a>
     <a class="lvl1" href="#refs">참고 문서</a>
   </nav>
 </aside>
@@ -305,30 +305,29 @@ body[data-lang="en"] .lang-ko{display:none}
   </div>
   <h1>IaaS GPU VM에서 Foundry Managed Compute로</h1>
   <p class="lede">
-    직접 운영하던 GPU VM 기반 추론 스택을 Foundry Managed Compute로 옮기기 위한 실무 가이드.
-    벤치마크 결과(Part A) → 개념(Part B) → 전환 실습(Part C) → 비용·의사결정(Part D) 순으로 구성했습니다.
+    직접 운영하던 GPU VM 추론 스택을 Foundry Managed Compute로 옮기기 위한 실무 가이드입니다.
+    벤치마크(A) → 개념(B) → 전환 실습(C) → 비용·의사결정(D) 순으로 읽으시면 됩니다.
   </p>
 
   <div class="warn draftbar">
-    <b>Draft — 작성 중인 문서입니다</b>
-    이 문서는 <b>초안(Draft)</b> 상태이며 내용이 계속 변경됩니다.
-    <b>Part A (벤치마크)</b>와 <b>C4 (네트워크 · 인증 · 권한)</b>는 <span class="tag wip">Working on</span>,
-    <b>C2 (커스텀 모델 올리기)</b> 절은 <span class="tag roadmap">Coming soon</span> 상태입니다.
-    <b>고객에게 그대로 배포하지 마시고</b>, 인용 전 최신 공식 문서와 Azure Pricing으로 반드시 재확인하세요.
+    <b>Draft — 작성 중</b>
+    내용이 계속 변경됩니다. <b>Part A</b>와 <b>C4</b>는 <span class="tag wip">Working on</span>,
+    <b>C2</b>는 <span class="tag roadmap">Coming soon</span> 상태입니다.
+    <b>고객에게 그대로 배포하지 마세요.</b>
   </div>
 
   <div class="note">
     <b>이 문서를 읽는 순서</b>
-    의사결정자는 <b>A3 → B1 → B3 → D1</b>, 플랫폼 엔지니어는 <b>B4 → B5 → C3 → C7</b>, 성능 검증 담당은 <b>A1 → A2 → C5 → D3</b> 을 먼저 보시면 됩니다.
-    가격·쿼터·로드맵 수치는 <span class="tag ghost">2026-08 기준</span> 이며 실제 계약 전 Azure Pricing으로 재확인이 필요합니다.
+    의사결정자 <b>A3 → B1 → B3 → D1</b> · 플랫폼 엔지니어 <b>B4 → B5 → C3 → C7</b> · 성능 검증 <b>A1 → A2 → C5 → D3</b><br>
+    가격·쿼터·로드맵은 <span class="tag ghost">2026-08 기준</span>이며 계약 전 Azure Pricing으로 재확인이 필요합니다.
   </div>
 
 <!-- ============================ PART A ============================ -->
-<h2 id="partA">Part A · 벤치마크 성능 테스트 결과 <span class="tag wip">Working on</span></h2>
+<h2 id="partA">Part A · 벤치마크 결과 <span class="tag wip">Working on</span></h2>
 <div class="warn">
   <b>Placeholder — 측정 대기</b>
-  이 파트의 모든 수치는 <b>실측 결과로 대체될 자리표시자</b>입니다. 표의 <span class="tbd">TBD</span> 셀을 채우면
-  <a href="#d2">D2 시나리오 시뮬레이션</a>과 <a href="#d3">D3 $/1M 토큰</a> 계산이 자동으로 완성되는 구조입니다.
+  이 파트의 수치는 모두 <b>자리표시자</b>입니다. <span class="tbd">TBD</span> 셀을 채우면
+  <a href="#d2">D2 시나리오 비교</a>와 <a href="#d3">D3 $/1M 토큰</a>이 자동으로 완성됩니다.
   <b>확정 전까지 고객에게 배포하지 마세요.</b>
 </div>
 
@@ -366,7 +365,7 @@ body[data-lang="en"] .lang-ko{display:none}
   비교군 전체에 동일한 프롬프트셋·토큰 분포·시드를 적용했음을 명시하세요.
 </div>
 
-<h3 id="a2">A2. 처리량 · 지연 결과</h3>
+<h3 id="a2">A2. 처리량과 지연 결과</h3>
 <h4>시나리오 1 — 짧은 프롬프트 / 고동시성 (챗)</h4>
 <table>
   <thead><tr>
@@ -410,7 +409,7 @@ body[data-lang="en"] .lang-ko{display:none}
   <b>메트릭 출처</b>
   Managed Compute 구성의 값은 별도 계측 없이 Azure Monitor에서 그대로 조회할 수 있습니다
   (<code>NormalizedTimeToFirstToken</code>, <code>NormalizedTimeBetweenTokens</code>, <code>TokensPerSecond</code>,
-  <code>ContextTokensCacheMatchRate</code>) — <a href="#c5">C5 참조</a>.
+  <code>ContextTokensCacheMatchRate</code>) — <a href="#c5">C5 모니터링</a>.
 </div>
 
 <div class="ph">
@@ -418,7 +417,7 @@ body[data-lang="en"] .lang-ko{display:none}
   <div class="ph-d">구성별 saturation point가 드러나는 이중축 차트. 측정 완료 후 이미지 삽입 예정.</div>
 </div>
 
-<h3 id="a3">A3. 가성비 결과 — $ / 1M 토큰</h3>
+<h3 id="a3">A3. 비용 효율 — $ / 1M 토큰</h3>
 <p>산출 공식은 <a href="#d3">D3</a>과 동일합니다. 아래 표가 <b>이 문서 전체의 결론</b>에 해당합니다.</p>
 <table>
   <thead><tr>
@@ -460,10 +459,10 @@ body[data-lang="en"] .lang-ko{display:none}
 </div>
 
 <!-- ============================ PART B ============================ -->
-<h2 id="partB">Part B · What — Managed Compute란 무엇인가</h2>
+<h2 id="partB">Part B · 개념 — Managed Compute란 무엇인가</h2>
 
-<h3 id="b1">B1. 3가지 배포 타입, 하나의 엔드포인트</h3>
-<p>Foundry는 세 가지 배포 타입을 제공하며, <b>세 가지 모두 동일한 엔드포인트·인증·SDK·프라이빗 네트워크·관측·청구서</b>를 공유합니다. 즉 배포 타입 선택은 아키텍처 결정이 아니라 <b>과금·용량 모델 결정</b>입니다.</p>
+<h3 id="b1">B1. 배포 타입 3가지, 엔드포인트 하나</h3>
+<p>Foundry의 세 가지 배포 타입은 <b>엔드포인트·인증·SDK·프라이빗 네트워크·모니터링·청구서를 모두 공유</b>합니다. 배포 타입 선택은 아키텍처 결정이 아니라 <b>과금·용량 결정</b>입니다.</p>
 <table>
   <thead><tr><th>배포 타입</th><th>과금 단위</th><th>적합한 상황</th><th>모델 범위</th></tr></thead>
   <tbody>
@@ -475,11 +474,11 @@ body[data-lang="en"] .lang-ko{display:none}
 <div class="tip">
   <b>핵심</b>
   Managed Compute는 "토큰을 사는" 모델이 아니라 <b>"GPU를 시간 단위로 빌리는"</b> 모델입니다.
-  따라서 자체 VM 운영과 <b>비용 구조가 직접 비교 가능</b>하며, 트래픽이 많을수록 토큰 과금 대비 유리해집니다.
+  자체 VM 운영과 <b>비용 구조를 직접 비교</b>할 수 있고, 트래픽이 많을수록 토큰 과금보다 유리해집니다.
 </div>
 
-<h3 id="b2">B2. 머신이 아니라 모델을 고른다 — 4-선택 모델</h3>
-<p>VM 기반 운영에서는 GPU 토폴로지, 텐서 병렬, 런타임 플래그, 컨테이너 이미지, 헬스 프로브, 로드밸런싱을 모두 직접 정해야 합니다. Managed Compute에서는 <b>네 가지만</b> 고르면 Foundry가 나머지 서빙 스택을 구성·운영합니다.</p>
+<h3 id="b2">B2. 배포 4-선택 — 머신이 아니라 모델을 고릅니다</h3>
+<p>VM 운영에서는 GPU 토폴로지, 텐서 병렬, 런타임 플래그, 컨테이너 이미지, 헬스 프로브, 로드밸런싱을 전부 직접 정해야 합니다. Managed Compute는 <b>네 가지만</b> 고르면 나머지 서빙 스택을 Foundry가 맡습니다.</p>
 <div class="grid g4">
   <div class="card"><h4>1 · Model</h4><p>카탈로그 모델과 <b>버전</b>을 선택합니다. 버전이 명시된 레지스트리 자산입니다.</p></div>
   <div class="card"><h4>2 · Template</h4><p><b>컨텍스트 길이</b>와 서빙 형태를 선택합니다. 런타임·파서·동시성이 이미 튜닝되어 있습니다.</p></div>
@@ -500,7 +499,7 @@ body[data-lang="en"] .lang-ko{display:none}
   8-GPU 노드에 워크로드를 억지로 패킹하거나 유휴 GPU를 떠안을 필요가 없습니다.
 </div>
 
-<h3 id="b3">B3. 책임 분계선</h3>
+<h3 id="b3">B3. 책임 분계</h3>
 <table>
   <thead><tr><th style="width:50%">Microsoft가 운영</th><th style="width:50%">고객이 결정 · 소유</th></tr></thead>
   <tbody>
@@ -511,7 +510,7 @@ body[data-lang="en"] .lang-ko{display:none}
         배포 오케스트레이션<br>
         라우팅 + 엔드포인트 통합<br>
         <b>런타임 업그레이드 + CVE 패치</b><br>
-        플랫폼 관측(메트릭 파이프라인)
+        플랫폼 모니터링(메트릭 파이프라인)
       </td>
       <td>
         모델과 모델 버전<br>
@@ -526,7 +525,7 @@ body[data-lang="en"] .lang-ko{display:none}
 </table>
 <p>자체 GPU 스택 운영 시 백로그에 남는 <b>5가지 프로덕션 책임</b>(VM SKU·쿼터 확보 / Kubernetes / 런타임 이미지 / 라우팅·캐시 / 패치·메트릭·청구)이 플랫폼으로 이관됩니다.</p>
 
-<h3 id="b4">B4. IaaS GPU VM ↔ Managed Compute 매핑</h3>
+<h3 id="b4">B4. IaaS GPU VM 대응표</h3>
 <p>기존 VM 기반 구성을 Managed Compute 개념으로 옮길 때 참고할 대응표입니다.</p>
 <table>
   <thead><tr><th>IaaS VM 방식 (현행)</th><th>Managed Compute (전환 후)</th><th>비고</th></tr></thead>
@@ -538,7 +537,7 @@ body[data-lang="en"] .lang-ko{display:none}
     <tr><td>Ingress / API GW / 로드밸런서 / 세션 어피니티</td><td>Foundry 라우터 (prefix · session affinity)</td><td>KV 캐시 인지 라우팅 내장</td></tr>
     <tr><td>Prometheus + Grafana 자체 구축</td><td>Azure Monitor 메트릭 무설정 수집</td><td>TTFT/TBT/TPS 기본 제공</td></tr>
     <tr><td>베이스 이미지 CVE 대응 · 재배포</td><td>플랫폼이 롤아웃 (엔드포인트 무중단)</td><td>고객 재배포 불필요</td></tr>
-    <tr><td>Azure <b>VM 쿼터</b> (vCPU 기준)</td><td>Foundry <b>가속기 쿼터</b> (별도 풀)</td><td>→ <a href="#b5">B5 참조</a></td></tr>
+    <tr><td>Azure <b>VM 쿼터</b> (vCPU 기준)</td><td>Foundry <b>가속기 쿼터</b> (별도 풀)</td><td>→ <a href="#b5">B5 쿼터</a></td></tr>
     <tr><td>모델 가중치 직접 다운로드 · 스캔 · 검증</td><td>사전 스테이징된 검증 가중치</td><td>HF Hub 아웃바운드 의존 없음</td></tr>
   </tbody>
 </table>
@@ -549,12 +548,12 @@ body[data-lang="en"] .lang-ko{display:none}
   <b>전환 효과의 상당 부분이 여기서 발생</b>하므로 현행 GPU 사용률(utilization)을 먼저 측정하세요.
 </div>
 
-<h3 id="b5">B5. 쿼터 구조와 "플랜 B"</h3>
+<h3 id="b5">B5. 쿼터와 용량 확보</h3>
 <p>Managed Compute 쿼터는 <b>Azure VM 쿼터와 완전히 분리된 별도 풀</b>이며, 가속기 계열(A100 / H100 / MI300X) 단위로 추적됩니다.</p>
 <div class="grid g3">
-  <div class="card"><h4>기본 할당</h4><p><b>지원 SKU당 8</b>이 기본값입니다. Foundry 포털의 <a href="https://ai.azure.com/managementCenter/quota" target="_blank" rel="noopener">Quota 화면</a>에서 사용량 확인 및 상향 요청이 가능합니다.</p></div>
-  <div class="card"><h4>분리 원칙</h4><p>NC/ND 계열 <b>VM 쿼터를 확보하지 못한 상황에서도</b> Managed Compute 쿼터는 독립적으로 요청·승인됩니다. 기존 Azure VM 쿼터를 Managed Compute에 <b>전용할 수는 없습니다.</b></p></div>
-  <div class="card"><h4>단위</h4><p><b>가속기 계열</b> 단위로 부여됩니다. 현재 배포 스코프가 <b>Global 하나</b>이므로 리전별로 쪼개 관리할 필요가 없고, vCPU·VM 시리즈 조합도 따질 필요가 없습니다.</p></div>
+  <div class="card"><h4>기본 할당</h4><p><b>지원 SKU당 8</b>이 기본값입니다. <a href="https://ai.azure.com/managementCenter/quota" target="_blank" rel="noopener">Foundry 포털 Quota 화면</a>에서 사용량 확인과 상향 요청을 합니다.</p></div>
+  <div class="card"><h4>분리 원칙</h4><p>NC/ND VM 쿼터가 없어도 <b>독립적으로 요청·승인</b>됩니다. 반대로 기존 VM 쿼터를 Managed Compute에 <b>전용할 수는 없습니다.</b></p></div>
+  <div class="card"><h4>단위</h4><p><b>가속기 계열</b> 단위입니다. 배포 스코프가 현재 <b>Global 하나</b>라 리전이나 vCPU·VM 시리즈를 따질 필요가 없습니다.</p></div>
 </div>
 
 <h4>가속기 계열 식별자</h4>
@@ -576,13 +575,13 @@ body[data-lang="en"] .lang-ko{display:none}
 
 <figure>
   <img src="assets/quota-1-usage.webp" alt="Foundry 포털 Quota 화면 — Managed compute 탭에서 가속기별 총량/사용량/가용량/배포 수 표시" loading="lazy">
-  <figcaption><b>Manage → Quota → Managed compute 탭</b> — 가속기 계열별 <b>Total / Used / Available quota</b>와 해당 가속기를 사용 중인 <b>배포 목록</b>이 함께 표시됩니다. 우측 상단 <b>Request quota</b> 버튼이 상향 요청 진입점입니다. <span class="tag ghost">화면은 상향 승인된 예시 테넌트 — 신규 구독 기본값은 SKU당 8</span></figcaption>
+  <figcaption><b>Manage → Quota → Managed compute 탭</b> — 가속기 계열별 <b>Total / Used / Available</b>과 사용 중인 <b>배포 목록</b>이 함께 보입니다. 우측 상단 <b>Request quota</b>가 상향 요청 진입점입니다. <span class="tag ghost">상향 승인된 예시 테넌트 — 신규 구독 기본값은 SKU당 8</span></figcaption>
 </figure>
 
 <div class="figrow two">
   <figure>
     <img src="assets/quota-2-request.webp" alt="쿼터 요청 폼 1페이지 — 리전, 구독 ID, 사유, 쿼터 유형 선택" loading="lazy">
-    <figcaption><b>요청 폼 1/3</b> — 리전, <b>구독 ID</b>, 사유(Justification)를 입력하고 <b>Quota Type</b>에서 반드시 <b>Managed Compute (GPU Accelerators)</b>를 선택합니다. Model Deployment(PTU/RPM/TPM)나 Fine-tuning을 고르면 다른 팀으로 라우팅됩니다.</figcaption>
+    <figcaption><b>요청 폼 1/3</b> — 리전, <b>구독 ID</b>, 사유를 입력하고 <b>Quota Type</b>은 반드시 <b>Managed Compute (GPU Accelerators)</b>를 고릅니다. Model Deployment나 Fine-tuning을 고르면 다른 팀으로 라우팅됩니다.</figcaption>
   </figure>
   <figure>
     <img src="assets/quota-3-confirm.webp" alt="쿼터 요청 폼 3페이지 — 가속기 타입, 스코프, 총 쿼터 수량, 배포 예정 모델 입력" loading="lazy">
@@ -622,21 +621,21 @@ body[data-lang="en"] .lang-ko{display:none}
   </tbody>
 </table>
 <div class="tip">
-  <b>플랜 B 시나리오</b>
-  IaaS GPU VM 쿼터 확보가 지연되어 PoC가 막힐 경우, <b>Managed Compute 쿼터로 우회하여 동일 모델을 즉시 배포</b>하고
-  벤치마크·기능 검증을 진행할 수 있습니다. 엔드포인트가 OpenAI 호환이므로 이후 IaaS로 되돌아가더라도 애플리케이션 코드 변경은 최소화됩니다.
+  <b>VM 쿼터가 막혔을 때</b>
+  IaaS GPU VM 쿼터 확보가 지연돼 PoC가 멈췄다면, <b>Managed Compute 쿼터로 우회해 같은 모델을 바로 배포</b>하고 벤치마크·기능 검증을 이어갈 수 있습니다.
+  엔드포인트가 OpenAI 호환이라 나중에 IaaS로 돌아가도 코드 변경이 거의 없습니다.
   <b>요청 폼 준비물</b> — 리전, 구독 ID, 사유, 가속기 계열, <b>요청 후 총 쿼터 수량</b>, 배포 예정 모델의 Hugging Face ID.
 </div>
 
 <!-- ============================ PART C ============================ -->
-<h2 id="partC">Part C · How — 전환 실습</h2>
+<h2 id="partC">Part C · 전환 실습</h2>
 
-<h3 id="c1">C1. 카탈로그에서 엔드포인트까지 5단계</h3>
+<h3 id="c1">C1. 배포 5단계 — 카탈로그에서 엔드포인트까지</h3>
 <p>포털, Python SDK, REST 모두 <b>동일한 모델 · 템플릿 · 가속기 · 용량 값</b>을 사용합니다. 일반적인 프로비저닝 시간은 10–15분입니다.</p>
 <ol class="steps">
-  <li><h3>Discover</h3><p>모델 카탈로그에서 <b>Deployment option = Managed compute</b> 로 필터하고, <b>Available in my project</b> 로 프로젝트 가용성을 확인합니다. Collection · modality · task · publisher로 추가 필터링이 가능합니다.</p></li>
-  <li><h3>Select model</h3><p>모델 카드에서 <b>버전이 명시된 레지스트리 자산 ID</b>, 업스트림 <b>라이선스</b>, 지원 태스크, 사용 가능한 배포 옵션을 검토합니다. 라이선스 조건은 그대로 노출되므로 법무 검토에 그대로 사용할 수 있습니다.</p></li>
-  <li><h3>Pick template</h3><p>런타임, <b>컨텍스트 길이</b>, GPU 풋프린트 조합을 선택합니다. 예: 16K 컨텍스트 = A100/H100 1개, 256K 컨텍스트 = A100/H100 2개. 템플릿 내부에는 vLLM 버전, tool/reasoning 파서, 동시성 한도, 프로브, 스코어링 경로가 고정되어 있습니다.</p></li>
+  <li><h3>Discover</h3><p>모델 카탈로그에서 <b>Deployment option = Managed compute</b>로 필터하고 <b>Available in my project</b>로 가용성을 확인합니다.</p></li>
+  <li><h3>Select model</h3><p>모델 카드에서 <b>버전이 명시된 레지스트리 자산 ID</b>, 업스트림 <b>라이선스</b>, 지원 태스크를 검토합니다. 라이선스 조건이 그대로 노출되어 법무 검토에 바로 쓸 수 있습니다.</p></li>
+  <li><h3>Pick template</h3><p>런타임 · <b>컨텍스트 길이</b> · GPU 풋프린트 조합을 고릅니다. 예를 들어 16K는 A100/H100 1개, 256K는 2개입니다. vLLM 버전, 파서, 동시성 한도, 프로브는 템플릿에 이미 고정되어 있습니다.</p></li>
   <li><h3>Set capacity</h3><p>가속기 계열과 <b>모델 인스턴스 수</b>를 지정합니다. 총 GPU 수와 시간당 비용이 여기서 확정됩니다.</p></li>
   <li><h3>Deploy + score</h3><p>상태가 <b>Succeeded</b>가 되면 Playground 또는 SDK로 즉시 호출합니다.</p></li>
 </ol>
@@ -659,7 +658,7 @@ body[data-lang="en"] .lang-ko{display:none}
 <div class="figrow two">
   <figure>
     <img src="assets/deploy-4-accelerator.webp" alt="가속기 타입 선택 드롭다운 — A100_80GB, 필요 가속기 수 표시" loading="lazy">
-    <figcaption><b>Step 4 · Accelerator</b> — <code>A100_80GB</code> 같은 <b>가속기 계열</b>을 선택합니다. 선택한 템플릿의 상세(Best for, Max sequence length, Trade-off)와 <b>Total Accelerators needed</b>가 함께 표시됩니다.</figcaption>
+    <figcaption><b>Step 4 · Accelerator</b> — <code>A100_80GB</code> 같은 <b>가속기 계열</b>을 선택합니다. 템플릿 상세(Best for, Max sequence length, Trade-off)와 <b>Total Accelerators needed</b>가 함께 표시됩니다.</figcaption>
   </figure>
   <figure>
     <img src="assets/deploy-5-capacity.webp" alt="모델 인스턴스 수 설정 화면" loading="lazy">
@@ -717,14 +716,14 @@ body[data-lang="en"] .lang-ko{display:none}
 </div>
 <p><b>읽는 법</b> — <code>environmentId</code>가 런타임 이미지 버전을 고정하고, 환경 변수가 컨텍스트 길이와 파서를 결정하며, <code>acceleratorMaps</code>가 <b>과금 단위</b>(인스턴스당 GPU 수)를 정의합니다. 5분 워밍업 프로브는 롤아웃 판정을 보호합니다.</p>
 
-<h3 id="c2">C2. 커스텀 모델 올리기 <span class="tag roadmap">Coming soon</span></h3>
+<h3 id="c2">C2. 커스텀 모델 <span class="tag roadmap">Coming soon</span></h3>
 
 <div class="warn draftbar">
   <b>Coming soon</b>
   이 절은 준비 중입니다.
 </div>
 
-<h3 id="c3">C3. 코드 마이그레이션 — 바꾸는 것은 두 줄</h3>
+<h3 id="c3">C3. 코드 전환 — 두 줄만 바꿉니다</h3>
 <p>자체 vLLM OpenAI 서버를 쓰고 있었다면, 애플리케이션 변경은 <b>base URL과 인증</b> 뿐입니다.</p>
 
 <h4>Before — 자체 vLLM 엔드포인트</h4>
@@ -817,7 +816,7 @@ deployment = poller.result()</pre>
   </tbody>
 </table>
 
-<h3 id="c5">C5. 관측 — 첫 요청부터 무설정</h3>
+<h3 id="c5">C5. 모니터링 — 설정 없이 자동 수집</h3>
 <p>Prometheus·Grafana를 직접 구축하지 않아도 Azure Monitor에 메트릭이 자동 수집됩니다. <b>1분 단위</b>로 조회 가능하며 deployment, model, model version, region, status, stream type, API 기준으로 분할할 수 있습니다.</p>
 <table>
   <thead><tr><th style="width:16%">범주</th><th style="width:30%">질문</th><th>메트릭</th></tr></thead>
@@ -861,7 +860,7 @@ deployment = poller.result()</pre>
   벤치마크 데이터 수집은 후자를 사용하세요.
 </div>
 
-<h3 id="c6">C6. 스케일아웃과 캐시 인지 라우팅</h3>
+<h3 id="c6">C6. 스케일아웃과 캐시 라우팅</h3>
 <p>자체 스택에서는 게이트웨이·라우터·세션 어피니티를 직접 구현해야 했지만, Foundry 라우터가 <b>미처리 프롬프트 토큰 부하를 균형화하면서 동시에 캐시 유효성과 세션 지역성을 보존</b>합니다.</p>
 <div class="grid g4">
   <div class="card"><h4>프롬프트 캐시</h4><p>반복되는 프리픽스에 대해 KV 상태를 재사용합니다.</p></div>
@@ -890,7 +889,7 @@ deployment = poller.result()</pre>
 </table>
 
 <!-- ============================ PART D ============================ -->
-<h2 id="partD">Part D · Economics &amp; Decision</h2>
+<h2 id="partD">Part D · 비용과 의사결정</h2>
 
 <h3 id="d1">D1. 비용 공식과 단가</h3>
 <div class="card">
@@ -932,7 +931,7 @@ deployment = poller.result()</pre>
   </tbody>
 </table>
 
-<h3 id="d2">D2. 시나리오 시뮬레이션 템플릿</h3>
+<h3 id="d2">D2. 시나리오 비교표</h3>
 <p>아래 표에 벤치마크 실측치를 대입해 고객별 비교를 완성합니다. <b>수치는 자리표시자</b>이며 실측 결과로 대체해야 합니다.</p>
 <table>
   <thead><tr>
@@ -949,10 +948,10 @@ deployment = poller.result()</pre>
 </table>
 <div class="warn">
   <b>비교 시 반드시 포함할 것</b>
-  온프렘/자체 운영과 비교할 때 GPU 하드웨어 가격만 비교하면 실제 비용의 절반만 본 것입니다.  <b>유휴 GPU 비용, 운영 FTE, 패치·CVE 대응 공수, 라우터·관측 구축 비용, 확장 리드타임의 기회비용</b>을 함께 계산하세요.
+  온프렘/자체 운영과 비교할 때 GPU 하드웨어 가격만 비교하면 실제 비용의 절반만 본 것입니다.  <b>유휴 GPU 비용, 운영 FTE, 패치·CVE 대응 공수, 라우터·모니터뭹 구축 비용, 확장 리드타임의 기회비용</b>을 함께 계산하세요.
 </div>
 
-<h3 id="d3">D3. 킬러 지표 — $ / 1M 토큰 산출법</h3>
+<h3 id="d3">D3. $ / 1M 토큰 산출법</h3>
 <div class="kpi">
   <p class="mono" style="font-size:15px;font-weight:700;margin:2px 0">
     $ / 1M output tokens = (시간당 단가 × 인스턴스당 GPU 수) ÷ (실측 output TPS × 3600) × 1,000,000
@@ -972,7 +971,7 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
   </ul>
 </div>
 
-<h3 id="d4">D4. 현재 제약과 로드맵</h3>
+<h3 id="d4">D4. 제약과 로드맵</h3>
 <table>
   <thead><tr><th style="width:14%">시점</th><th>내용</th></tr></thead>
   <tbody>
@@ -988,7 +987,7 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
     <li><b>Public Preview</b> — SLA가 제공되지 않으며 프로덕션 워크로드에는 아직 권장되지 않습니다. 고객 제안 시 반드시 명시하세요.</li>
     <li><b>콘텐츠 필터링 미적용</b> — Azure AI Content Safety 필터가 Managed Compute 데이터 경로에 포함되어 있지 않습니다. 요청/응답 필터링이 필요하면 애플리케이션에서 Content Safety API를 직접 호출해야 합니다.</li>
     <li><b>오토스케일링 미지원</b> — 현재는 <b>모델 인스턴스 수를 수동으로 조정</b>해야 합니다. 트래픽 변동에 따른 자동 확장·축소는 <b>로드맵에 포함</b>되어 있으나 아직 제공되지 않으므로, 피크 기준으로 인스턴스를 잡거나 외부 자동화로 조정해야 합니다.</li>
-    <li><b>H200 미지원</b> — 현재 선택 가능한 가속기는 A100 · H100 · MI300X입니다. <b>H200(<code>H200_141GB</code>)은 곧 지원</b>될 예정입니다(<a href="#b5">B5 참조</a>).</li>
+    <li><b>H200 미지원</b> — 현재 선택 가능한 가속기는 A100 · H100 · MI300X입니다. <b>H200(<code>H200_141GB</code>)은 곧 지원</b>될 예정입니다(<a href="#b5">B5 쿼터</a>).</li>
     <li><b>커스텀 가중치(BYOW)는 아직 미지원</b> — 파인튜닝 모델을 서빙해야 한다면 로드맵 시점까지 IaaS 병행이 필요합니다.</li>
     <li><b>데이터 레지던시는 Global</b> — 처리 위치를 데이터 존 내로 한정해야 하는 요건이 있다면 Data Zone GA를 기다려야 합니다.</li>
     <li><b>기본 쿼터 8/SKU</b> — 대규모 배포는 <a href="#b5">사전 쿼터 상향 요청</a>이 필수입니다.</li>
@@ -1018,7 +1017,7 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
     <tr><td><a href="https://learn.microsoft.com/en-us/azure/foundry/concepts/managed-compute-overview" target="_blank" rel="noopener">Managed compute in Microsoft Foundry</a></td><td><b>가장 중요한 문서.</b> 모델 인스턴스, 배포 템플릿, 가속기 계열, 런타임, 엔드포인트 라우트, 스케일링, 과금·쿼터, RBAC, 제약사항 총정리</td></tr>
     <tr><td><a href="https://learn.microsoft.com/en-us/azure/foundry/how-to/deploy-models-managed?tabs=openai-entra&amp;pivots=python-sdk" target="_blank" rel="noopener">Deploy open-source models with managed compute</a></td><td>포털·Python SDK 배포, 추론, 스케일링, 모니터링, 트러블슈팅 — <b>Part C의 1차 레퍼런스</b></td></tr>
     <tr><td><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/model-catalog-overview" target="_blank" rel="noopener">Model catalog overview</a></td><td>카탈로그 구조, 필터, 모델 카드, 라이선스 — <b>C1 Step 1–2</b></td></tr>
-    <tr><td><a href="https://learn.microsoft.com/en-us/azure/foundry/how-to/quota" target="_blank" rel="noopener">Manage and increase quotas</a></td><td>쿼터 조회·상향 요청 절차 — <b>B5 플랜 B</b></td></tr>
+    <tr><td><a href="https://learn.microsoft.com/en-us/azure/foundry/how-to/quota" target="_blank" rel="noopener">Manage and increase quotas</a></td><td>쿼터 조회·상향 요청 절차 — <b>B5</b></td></tr>
     <tr><td><a href="https://learn.microsoft.com/en-us/rest/api/cost-management/retail-prices/azure-retail-prices" target="_blank" rel="noopener">Azure Retail Prices API</a></td><td>최신 가속기-시간 단가 조회 — <b>D1 단가 갱신</b></td></tr>
   </tbody>
 </table>
@@ -1042,30 +1041,30 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
   <div class="brand">Microsoft Foundry</div>
   <div class="brand-sub">Managed Compute<br>Migration Guide <span class="tag draft">Draft</span></div>
   <nav class="toc">
-    <a class="lvl1" href="#en-partA">Part A · Benchmark <span class="tag wip">WIP</span></a>
+    <a class="lvl1" href="#en-partA">Part A · Benchmarks <span class="tag wip">WIP</span></a>
     <a class="lvl2" href="#en-a1">A1. Test design</a>
-    <a class="lvl2" href="#en-a2">A2. Throughput · Latency</a>
-    <a class="lvl2" href="#en-a3">A3. Cost-efficiency results</a>
-    <a class="lvl2" href="#en-a4">A4. Recommendations by workload</a>
-    <a class="lvl1" href="#en-partB">Part B · What</a>
-    <a class="lvl2" href="#en-b1">B1. Three deployment types</a>
-    <a class="lvl2" href="#en-b2">B2. The 4-choice model</a>
+    <a class="lvl2" href="#en-a2">A2. Throughput &amp; latency</a>
+    <a class="lvl2" href="#en-a3">A3. Cost efficiency</a>
+    <a class="lvl2" href="#en-a4">A4. Recommended setups</a>
+    <a class="lvl1" href="#en-partB">Part B · Concepts</a>
+    <a class="lvl2" href="#en-b1">B1. Deployment types</a>
+    <a class="lvl2" href="#en-b2">B2. The four choices</a>
     <a class="lvl2" href="#en-b3">B3. Responsibility split</a>
-    <a class="lvl2" href="#en-b4">B4. IaaS VM ↔ MC mapping</a>
-    <a class="lvl2" href="#en-b5">B5. Quota structure and Plan B</a>
-    <a class="lvl1" href="#en-partC">Part C · How</a>
-    <a class="lvl2" href="#en-c1">C1. 5-step deployment</a>
-    <a class="lvl2" href="#en-c2">C2. Bringing your own model <span class="tag roadmap">Soon</span></a>
+    <a class="lvl2" href="#en-b4">B4. IaaS VM mapping</a>
+    <a class="lvl2" href="#en-b5">B5. Quota &amp; capacity</a>
+    <a class="lvl1" href="#en-partC">Part C · Migration</a>
+    <a class="lvl2" href="#en-c1">C1. Deploy in 5 steps</a>
+    <a class="lvl2" href="#en-c2">C2. Custom models <span class="tag roadmap">Soon</span></a>
     <a class="lvl2" href="#en-c3">C3. Code migration</a>
     <a class="lvl2" href="#en-c4">C4. Network · Auth · Permissions <span class="tag wip">WIP</span></a>
-    <a class="lvl2" href="#en-c5">C5. Observability</a>
-    <a class="lvl2" href="#en-c6">C6. Scale-out · Cache</a>
-    <a class="lvl2" href="#en-c7">C7. Migration checklist</a>
+    <a class="lvl2" href="#en-c5">C5. Monitoring</a>
+    <a class="lvl2" href="#en-c6">C6. Scale-out &amp; caching</a>
+    <a class="lvl2" href="#en-c7">C7. Checklist</a>
     <a class="lvl1" href="#en-partD">Part D · Economics</a>
     <a class="lvl2" href="#en-d1">D1. Cost formula</a>
-    <a class="lvl2" href="#en-d2">D2. Scenario simulation</a>
-    <a class="lvl2" href="#en-d3">D3. How to calculate $/1M tokens</a>
-    <a class="lvl2" href="#en-d4">D4. Constraints · Roadmap</a>
+    <a class="lvl2" href="#en-d2">D2. Scenario comparison</a>
+    <a class="lvl2" href="#en-d3">D3. $ / 1M tokens</a>
+    <a class="lvl2" href="#en-d4">D4. Limits &amp; roadmap</a>
     <a class="lvl1" href="#en-refs">References</a>
   </nav>
 </aside>
@@ -1079,30 +1078,29 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
   </div>
   <h1>From IaaS GPU VMs to Foundry Managed Compute</h1>
   <p class="lede">
-    A practical guide for moving a self-operated GPU VM-based inference stack to Foundry Managed Compute.
-    It is organized as benchmark results (Part A) → concepts (Part B) → migration hands-on (Part C) → cost and decision-making (Part D).
+    A practical guide for moving a self-operated GPU VM inference stack to Foundry Managed Compute.
+    Read it in order: benchmarks (A) → concepts (B) → migration hands-on (C) → cost and decisions (D).
   </p>
 
   <div class="warn draftbar">
     <b>Draft — work in progress</b>
-    This document is a <b>draft</b> and its contents will keep changing.
-    <b>Part A (benchmarks)</b> and <b>C4 (network · auth · permissions)</b> are <span class="tag wip">Working on</span>, and
-    <b>C2 (bringing your own model)</b> is <span class="tag roadmap">Coming soon</span>.
-    <b>Do not distribute it to customers as-is</b>, and re-verify against the latest official docs and Azure Pricing before quoting anything.
+    The contents will keep changing. <b>Part A</b> and <b>C4</b> are <span class="tag wip">Working on</span>, and
+    <b>C2</b> is <span class="tag roadmap">Coming soon</span>.
+    <b>Do not distribute it to customers as-is.</b>
   </div>
 
   <div class="note">
     <b>How to read this document</b>
-    Decision-makers should start with <b>A3 → B1 → B3 → D1</b>, platform engineers with <b>B4 → B5 → C3 → C7</b>, and performance-validation owners with <b>A1 → A2 → C5 → D3</b>.
-    Pricing, quota, and roadmap figures are <span class="tag ghost">as of 2026-08</span> and must be re-verified against Azure Pricing before any actual contract.
+    Decision-makers <b>A3 → B1 → B3 → D1</b> · platform engineers <b>B4 → B5 → C3 → C7</b> · performance validation <b>A1 → A2 → C5 → D3</b><br>
+    Pricing, quota, and roadmap figures are <span class="tag ghost">as of 2026-08</span> and must be re-verified against Azure Pricing before any contract.
   </div>
 
 <!-- ============================ PART A ============================ -->
-<h2 id="en-partA">Part A · Benchmark performance test results <span class="tag wip">Working on</span></h2>
+<h2 id="en-partA">Part A · Benchmark results <span class="tag wip">Working on</span></h2>
 <div class="warn">
   <b>Placeholder — awaiting measurement</b>
-  Every figure in this part is a <b>placeholder to be replaced with measured results</b>. Once you fill in the <span class="tbd">TBD</span> cells in the tables,
-  the <a href="#en-d2">D2 scenario simulation</a> and <a href="#en-d3">D3 $/1M token</a> calculations complete automatically.
+  Every figure in this part is a <b>placeholder</b>. Once you fill in the <span class="tbd">TBD</span> cells,
+  <a href="#en-d2">D2 scenario comparison</a> and <a href="#en-d3">D3 $/1M tokens</a> complete automatically.
   <b>Do not distribute to customers until finalized.</b>
 </div>
 
@@ -1140,7 +1138,7 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
   State explicitly that the same prompt set, token distribution, and seed were applied across all comparison groups.
 </div>
 
-<h3 id="en-a2">A2. Throughput · Latency results</h3>
+<h3 id="en-a2">A2. Throughput and latency results</h3>
 <h4>Scenario 1 — Short prompts / high concurrency (chat)</h4>
 <table>
   <thead><tr>
@@ -1184,7 +1182,7 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
   <b>Metric source</b>
   Values for Managed Compute configurations can be read directly from Azure Monitor without any additional instrumentation
   (<code>NormalizedTimeToFirstToken</code>, <code>NormalizedTimeBetweenTokens</code>, <code>TokensPerSecond</code>,
-  <code>ContextTokensCacheMatchRate</code>) — <a href="#en-c5">see C5</a>.
+  <code>ContextTokensCacheMatchRate</code>) — <a href="#en-c5">see C5 Monitoring</a>.
 </div>
 
 <div class="ph">
@@ -1192,7 +1190,7 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
   <div class="ph-d">A dual-axis chart revealing the saturation point of each configuration. Image to be inserted after measurement is complete.</div>
 </div>
 
-<h3 id="en-a3">A3. Cost-efficiency results — $ / 1M tokens</h3>
+<h3 id="en-a3">A3. Cost efficiency — $ / 1M tokens</h3>
 <p>The calculation formula is identical to <a href="#en-d3">D3</a>. The table below represents <b>the conclusion of this entire document</b>.</p>
 <table>
   <thead><tr>
@@ -1234,10 +1232,10 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
 </div>
 
 <!-- ============================ PART B ============================ -->
-<h2 id="en-partB">Part B · What — What is Managed Compute</h2>
+<h2 id="en-partB">Part B · Concepts — what Managed Compute is</h2>
 
 <h3 id="en-b1">B1. Three deployment types, one endpoint</h3>
-<p>Foundry offers three deployment types, and <b>all three share the same endpoint, authentication, SDK, private networking, observability, and invoice</b>. In other words, choosing a deployment type is not an architecture decision but a <b>billing and capacity model decision</b>.</p>
+<p>Foundry offers three deployment types, and <b>all three share the same endpoint, authentication, SDK, private networking, observability, and invoice</b>. Choosing one is therefore not an architecture decision but a <b>billing and capacity decision</b>.</p>
 <table>
   <thead><tr><th>Deployment type</th><th>Billing unit</th><th>Best for</th><th>Model scope</th></tr></thead>
   <tbody>
@@ -1249,11 +1247,11 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
 <div class="tip">
   <b>Key point</b>
   Managed Compute is not a "buy tokens" model but a <b>"rent GPUs by the hour"</b> model.
-  As a result, its cost structure is <b>directly comparable to self-operated VMs</b>, and the more traffic you have, the more favorable it becomes versus token-based billing.
+  Its cost structure is therefore <b>directly comparable to self-operated VMs</b>, and the more traffic you have, the better it looks against token billing.
 </div>
 
-<h3 id="en-b2">B2. You pick a model, not a machine — the 4-choice model</h3>
-<p>In VM-based operations you must decide the GPU topology, tensor parallelism, runtime flags, container image, health probes, and load balancing yourself. In Managed Compute you choose <b>just four things</b> and Foundry configures and operates the rest of the serving stack.</p>
+<h3 id="en-b2">B2. The four choices — you pick a model, not a machine</h3>
+<p>With VMs you decide the GPU topology, tensor parallelism, runtime flags, container image, health probes, and load balancing yourself. With Managed Compute you choose <b>just four things</b> and Foundry runs the rest of the serving stack.</p>
 <div class="grid g4">
   <div class="card"><h4>1 · Model</h4><p>Select a catalog model and its <b>version</b>. It is a registry asset with an explicit version.</p></div>
   <div class="card"><h4>2 · Template</h4><p>Select the <b>context length</b> and serving shape. Runtime, parser, and concurrency are already tuned.</p></div>
@@ -1300,7 +1298,7 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
 </table>
 <p>The <b>five production responsibilities</b> that remain in your backlog when running your own GPU stack (VM SKU · quota acquisition / Kubernetes / runtime images / routing · cache / patching · metrics · billing) are handed off to the platform.</p>
 
-<h3 id="en-b4">B4. IaaS GPU VM ↔ Managed Compute mapping</h3>
+<h3 id="en-b4">B4. IaaS GPU VM mapping</h3>
 <p>A mapping table to reference when moving an existing VM-based configuration to Managed Compute concepts.</p>
 <table>
   <thead><tr><th>IaaS VM approach (current)</th><th>Managed Compute (after migration)</th><th>Notes</th></tr></thead>
@@ -1323,12 +1321,12 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
   <b>A significant portion of the migration benefit originates here</b>, so measure your current GPU utilization first.
 </div>
 
-<h3 id="en-b5">B5. Quota structure and "Plan B"</h3>
+<h3 id="en-b5">B5. Quota and securing capacity</h3>
 <p>Managed Compute quota is a <b>separate pool completely isolated from Azure VM quota</b>, and it is tracked per accelerator family (A100 / H100 / MI300X).</p>
 <div class="grid g3">
-  <div class="card"><h4>Default allocation</h4><p><b>8 per supported SKU</b> is the default. You can check usage and request increases on the <a href="https://ai.azure.com/managementCenter/quota" target="_blank" rel="noopener">Quota screen</a> in the Foundry portal.</p></div>
-  <div class="card"><h4>Isolation principle</h4><p><b>Even when you have not secured NC/ND-series VM quota</b>, Managed Compute quota is requested and approved independently. You <b>cannot dedicate existing Azure VM quota</b> to Managed Compute.</p></div>
-  <div class="card"><h4>Unit</h4><p>Granted per <b>accelerator family</b>. Because the deployment scope is currently <b>Global only</b>, you don't have to manage it region by region, and there's no need to reason about vCPU · VM-series combinations.</p></div>
+  <div class="card"><h4>Default allocation</h4><p><b>8 per supported SKU</b> is the default. Check usage and request increases on the <a href="https://ai.azure.com/managementCenter/quota" target="_blank" rel="noopener">Foundry portal Quota screen</a>.</p></div>
+  <div class="card"><h4>Isolation principle</h4><p>Requested and approved <b>independently</b>, even without NC/ND VM quota. Conversely, you <b>cannot dedicate existing VM quota</b> to Managed Compute.</p></div>
+  <div class="card"><h4>Unit</h4><p>Per <b>accelerator family</b>. Since the deployment scope is currently <b>Global only</b>, there's no region or vCPU · VM-series to reason about.</p></div>
 </div>
 
 <h4>Accelerator family identifiers</h4>
@@ -1350,13 +1348,13 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
 
 <figure>
   <img src="assets/quota-1-usage.webp" alt="Foundry portal Quota screen — the Managed compute tab shows total/used/available and deployment count per accelerator" loading="lazy">
-  <figcaption><b>Manage → Quota → Managed compute tab</b> — <b>Total / Used / Available quota</b> per accelerator family are shown together with the <b>list of deployments</b> using that accelerator. The <b>Request quota</b> button in the top right is the entry point for increase requests. <span class="tag ghost">The screen is an example tenant with an approved increase — the default for a new subscription is 8 per SKU</span></figcaption>
+  <figcaption><b>Manage → Quota → Managed compute tab</b> — <b>Total / Used / Available</b> per accelerator family, alongside the <b>deployments</b> using it. <b>Request quota</b> in the top right is the entry point for increases. <span class="tag ghost">Example tenant with an approved increase — the default for a new subscription is 8 per SKU</span></figcaption>
 </figure>
 
 <div class="figrow two">
   <figure>
     <img src="assets/quota-2-request.webp" alt="Quota request form page 1 — select region, subscription ID, justification, and quota type" loading="lazy">
-    <figcaption><b>Request form 1/3</b> — Enter the region, <b>subscription ID</b>, and justification, and be sure to select <b>Managed Compute (GPU Accelerators)</b> under <b>Quota Type</b>. Choosing Model Deployment (PTU/RPM/TPM) or Fine-tuning routes to a different team.</figcaption>
+    <figcaption><b>Request form 1/3</b> — Enter the region, <b>subscription ID</b>, and justification, and be sure to pick <b>Managed Compute (GPU Accelerators)</b> as the <b>Quota Type</b>. Model Deployment or Fine-tuning routes to a different team.</figcaption>
   </figure>
   <figure>
     <img src="assets/quota-3-confirm.webp" alt="Quota request form page 3 — enter accelerator type, scope, total quota amount, and the model to be deployed" loading="lazy">
@@ -1396,21 +1394,21 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
   </tbody>
 </table>
 <div class="tip">
-  <b>Plan B scenario</b>
-  If a PoC is blocked by delayed IaaS GPU VM quota, you can <b>work around it via Managed Compute quota to deploy the same model immediately</b> and
-  proceed with benchmarking and functional validation. Because the endpoint is OpenAI-compatible, application code changes are minimized even if you later return to IaaS.
+  <b>When VM quota is blocked</b>
+  If a PoC stalls on delayed IaaS GPU VM quota, <b>route around it with Managed Compute quota and deploy the same model right away</b> to keep benchmarking and functional validation moving.
+  Because the endpoint is OpenAI-compatible, returning to IaaS later costs almost no code change.
   <b>What to prepare for the request form</b> — region, subscription ID, justification, accelerator family, <b>total quota amount after the request</b>, and the Hugging Face ID of the model to be deployed.
 </div>
 
 <!-- ============================ PART C ============================ -->
-<h2 id="en-partC">Part C · How — Migration hands-on</h2>
+<h2 id="en-partC">Part C · Migration hands-on</h2>
 
-<h3 id="en-c1">C1. From catalog to endpoint in 5 steps</h3>
+<h3 id="en-c1">C1. Deploy in 5 steps — from catalog to endpoint</h3>
 <p>The portal, Python SDK, and REST all use the <b>same model · template · accelerator · capacity values</b>. Typical provisioning time is 10–15 minutes.</p>
 <ol class="steps">
-  <li><h3>Discover</h3><p>Filter the model catalog by <b>Deployment option = Managed compute</b>, and confirm project availability with <b>Available in my project</b>. You can further filter by collection · modality · task · publisher.</p></li>
-  <li><h3>Select model</h3><p>On the model card, review the <b>version-pinned registry asset ID</b>, the upstream <b>license</b>, supported tasks, and available deployment options. License terms are surfaced as-is, so you can use them directly for legal review.</p></li>
-  <li><h3>Pick template</h3><p>Select the combination of runtime, <b>context length</b>, and GPU footprint. Example: 16K context = 1 A100/H100, 256K context = 2 A100/H100. Inside a template, the vLLM version, tool/reasoning parser, concurrency limit, probes, and scoring path are pinned.</p></li>
+  <li><h3>Discover</h3><p>Filter the model catalog by <b>Deployment option = Managed compute</b> and confirm availability with <b>Available in my project</b>.</p></li>
+  <li><h3>Select model</h3><p>On the model card, review the <b>version-pinned registry asset ID</b>, the upstream <b>license</b>, and supported tasks. License terms are surfaced as-is, so you can hand them straight to legal review.</p></li>
+  <li><h3>Pick template</h3><p>Pick the runtime · <b>context length</b> · GPU footprint combination — for example 16K is 1 A100/H100 and 256K is 2. The vLLM version, parsers, concurrency limit, and probes are already pinned inside the template.</p></li>
   <li><h3>Set capacity</h3><p>Specify the accelerator family and the <b>number of model instances</b>. The total GPU count and hourly cost are finalized here.</p></li>
   <li><h3>Deploy + score</h3><p>Once the status becomes <b>Succeeded</b>, call it immediately from the Playground or SDK.</p></li>
 </ol>
@@ -1491,7 +1489,7 @@ $ / 1M tokens     = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
 </div>
 <p><b>How to read it</b> — <code>environmentId</code> pins the runtime image version, the environment variables determine context length and parsers, and <code>acceleratorMaps</code> defines the <b>billing unit</b> (GPUs per instance). The 5-minute warmup probe protects rollout decisions.</p>
 
-<h3 id="en-c2">C2. Bringing your own model <span class="tag roadmap">Coming soon</span></h3>
+<h3 id="en-c2">C2. Custom models <span class="tag roadmap">Coming soon</span></h3>
 
 <div class="warn draftbar">
   <b>Coming soon</b>
@@ -1591,7 +1589,7 @@ deployment = poller.result()</pre>
   </tbody>
 </table>
 
-<h3 id="en-c5">C5. Observability — zero setup from the first request</h3>
+<h3 id="en-c5">C5. Monitoring — collected automatically, no setup</h3>
 <p>Metrics are collected in Azure Monitor automatically, without building your own Prometheus/Grafana. They are queryable at <b>1-minute grain</b> and can be split by deployment, model, model version, region, status, stream type, and API.</p>
 <table>
   <thead><tr><th style="width:16%">Category</th><th style="width:30%">Question</th><th>Metrics</th></tr></thead>
@@ -1664,7 +1662,7 @@ deployment = poller.result()</pre>
 </table>
 
 <!-- ============================ PART D ============================ -->
-<h2 id="en-partD">Part D · Economics &amp; Decision</h2>
+<h2 id="en-partD">Part D · Economics and decisions</h2>
 
 <h3 id="en-d1">D1. Cost formula and rates</h3>
 <div class="card">
@@ -1706,7 +1704,7 @@ deployment = poller.result()</pre>
   </tbody>
 </table>
 
-<h3 id="en-d2">D2. Scenario simulation template</h3>
+<h3 id="en-d2">D2. Scenario comparison table</h3>
 <p>Plug measured benchmark values into the table below to complete a per-customer comparison. <b>The figures are placeholders</b> and must be replaced with measured results.</p>
 <table>
   <thead><tr>
@@ -1726,7 +1724,7 @@ deployment = poller.result()</pre>
   When comparing against on-prem/self-operated, comparing only GPU hardware price captures just half the real cost. Also account for <b>idle GPU cost, operations FTE, patching · CVE effort, the cost of building routing · observability, and the opportunity cost of scaling lead time</b>.
 </div>
 
-<h3 id="en-d3">D3. The killer metric — how to calculate $ / 1M tokens</h3>
+<h3 id="en-d3">D3. How to calculate $ / 1M tokens</h3>
 <div class="kpi">
   <p class="mono" style="font-size:15px;font-weight:700;margin:2px 0">
     $ / 1M output tokens = (hourly rate × GPUs per instance) ÷ (measured output TPS × 3600) × 1,000,000
@@ -1746,7 +1744,7 @@ $ / 1M tokens            = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
   </ul>
 </div>
 
-<h3 id="en-d4">D4. Current constraints and roadmap</h3>
+<h3 id="en-d4">D4. Limits and roadmap</h3>
 <table>
   <thead><tr><th style="width:14%">Timeframe</th><th>Details</th></tr></thead>
   <tbody>
@@ -1762,7 +1760,7 @@ $ / 1M tokens            = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
     <li><b>Public Preview</b> — No SLA is provided and it is not yet recommended for production workloads. Always state this clearly when proposing to customers.</li>
     <li><b>No content filtering applied</b> — Azure AI Content Safety filters are not included in the Managed Compute data path. If request/response filtering is required, the application must call the Content Safety API directly.</li>
     <li><b>No autoscaling</b> — You currently have to <b>adjust the model instance count manually</b>. Automatic scale-out and scale-in based on traffic is <b>on the roadmap</b> but not available yet, so size for peak or drive scaling from external automation.</li>
-    <li><b>H200 not available yet</b> — The selectable accelerators today are A100 · H100 · MI300X. <b>H200 (<code>H200_141GB</code>) is coming soon</b> (see <a href="#en-b5">B5</a>).</li>
+    <li><b>H200 not available yet</b> — The selectable accelerators today are A100 · H100 · MI300X. <b>H200 (<code>H200_141GB</code>) is coming soon</b> (see <a href="#en-b5">B5 quota</a>).</li>
     <li><b>Custom weights (BYOW) not yet supported</b> — If you need to serve a fine-tuned model, you must run IaaS in parallel until the roadmap date.</li>
     <li><b>Data residency is Global</b> — If you have a requirement to confine processing within a data zone, you must wait for Data Zone GA.</li>
     <li><b>Default quota 8/SKU</b> — Large deployments require a <a href="#en-b5">quota increase request in advance</a>.</li>
@@ -1792,7 +1790,7 @@ $ / 1M tokens            = 7.91 ÷ 7.2 ≈ <b>$1.10</b></pre>
     <tr><td><a href="https://learn.microsoft.com/en-us/azure/foundry/concepts/managed-compute-overview" target="_blank" rel="noopener">Managed compute in Microsoft Foundry</a></td><td><b>The most important document.</b> A complete overview of model instances, deployment templates, accelerator families, runtime, endpoint routes, scaling, billing · quota, RBAC, and constraints</td></tr>
     <tr><td><a href="https://learn.microsoft.com/en-us/azure/foundry/how-to/deploy-models-managed?tabs=openai-entra&amp;pivots=python-sdk" target="_blank" rel="noopener">Deploy open-source models with managed compute</a></td><td>Portal · Python SDK deployment, inference, scaling, monitoring, troubleshooting — <b>the primary reference for Part C</b></td></tr>
     <tr><td><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/model-catalog-overview" target="_blank" rel="noopener">Model catalog overview</a></td><td>Catalog structure, filters, model cards, licenses — <b>C1 Steps 1–2</b></td></tr>
-    <tr><td><a href="https://learn.microsoft.com/en-us/azure/foundry/how-to/quota" target="_blank" rel="noopener">Manage and increase quotas</a></td><td>Procedures for checking quotas and requesting increases — <b>B5 Plan B</b></td></tr>
+    <tr><td><a href="https://learn.microsoft.com/en-us/azure/foundry/how-to/quota" target="_blank" rel="noopener">Manage and increase quotas</a></td><td>Procedures for checking quotas and requesting increases — <b>B5</b></td></tr>
     <tr><td><a href="https://learn.microsoft.com/en-us/rest/api/cost-management/retail-prices/azure-retail-prices" target="_blank" rel="noopener">Azure Retail Prices API</a></td><td>Query the latest accelerator-hour rates — <b>D1 rate refresh</b></td></tr>
   </tbody>
 </table>
